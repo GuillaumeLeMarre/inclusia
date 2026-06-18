@@ -1,0 +1,60 @@
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
+import type { Database } from "@/types/database";
+import { getSupabaseEnv } from "@/lib/supabase/env";
+
+const PUBLIC_ROUTES = ["/login", "/register", "/forgot-password"];
+
+export async function updateSession(request: NextRequest) {
+  let supabaseResponse = NextResponse.next({ request });
+
+  const { url: supabaseUrl, anonKey: supabaseKey } = getSupabaseEnv();
+  const isDemoMode = !supabaseUrl || !supabaseKey;
+
+  if (isDemoMode) {
+    const pathname = request.nextUrl.pathname;
+    const isAuthRoute = ["/login", "/register", "/forgot-password"].includes(pathname);
+    if (isAuthRoute) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      return NextResponse.redirect(url);
+    }
+    return supabaseResponse;
+  }
+
+  const supabase = createServerClient<Database>(supabaseUrl, supabaseKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value }) =>
+          request.cookies.set(name, value),
+        );
+        supabaseResponse = NextResponse.next({ request });
+        cookiesToSet.forEach(({ name, value, options }) =>
+          supabaseResponse.cookies.set(name, value, options),
+        );
+      },
+    },
+  });
+
+  const { data: { user } } = await supabase.auth.getUser();
+  const pathname = request.nextUrl.pathname;
+  const isPublicRoute = PUBLIC_ROUTES.some((route) => pathname.startsWith(route));
+  const isAuthRoute = ["/login", "/register", "/forgot-password"].includes(pathname);
+
+  if (!user && !isPublicRoute && pathname !== "/") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
+  }
+
+  if (user && isAuthRoute) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/dashboard";
+    return NextResponse.redirect(url);
+  }
+
+  return supabaseResponse;
+}
