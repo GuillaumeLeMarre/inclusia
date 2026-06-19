@@ -88,6 +88,7 @@ export interface Adaptation {
   simplified_questions: string[] | null;
   adapted_instructions: string | null;
   mindmap: MindmapData | null;
+  mindmap_mermaid: string | null;
   audio_script: string | null;
   processing_time_ms: number | null;
   is_demo: boolean;

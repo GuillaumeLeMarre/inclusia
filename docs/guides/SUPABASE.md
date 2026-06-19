@@ -20,6 +20,7 @@ Dans **SQL Editor**, exécutez dans l'ordre :
 3. `supabase/migrations/003_storage_setup.sql`
 4. `supabase/migrations/004_fix_auth_signup.sql` (si inscription en erreur)
 5. `supabase/migrations/005_anonymous_learner_profiles.sql` (**obligatoire** — profils anonymes)
+6. `supabase/migrations/006_mindmap_mermaid.sql` (schémas Mermaid)
 
 Vérifier après migration :
 

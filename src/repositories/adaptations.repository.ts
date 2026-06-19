@@ -99,3 +99,21 @@ export async function createAdaptation(client: Client, input: AdaptationResultIn
   if (error) throw error;
   return mapAdaptation(data);
 }
+
+export async function updateMindmapMermaid(
+  client: Client,
+  teacherId: string,
+  adaptationId: string,
+  mermaidCode: string,
+) {
+  const { data, error } = await client
+    .from("adaptations")
+    .update({ mindmap_mermaid: mermaidCode })
+    .eq("id", adaptationId)
+    .eq("teacher_id", teacherId)
+    .select("mindmap_mermaid")
+    .single();
+
+  if (error) throw error;
+  return data.mindmap_mermaid;
+}

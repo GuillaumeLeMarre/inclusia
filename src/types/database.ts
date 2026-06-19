@@ -181,6 +181,7 @@ export interface Database {
           simplified_questions: Json | null;
           adapted_instructions: string | null;
           mindmap: Json | null;
+          mindmap_mermaid: string | null;
           audio_script: string | null;
           processing_time_ms: number | null;
           is_demo: boolean;
@@ -203,6 +204,7 @@ export interface Database {
           simplified_questions?: Json | null;
           adapted_instructions?: string | null;
           mindmap?: Json | null;
+          mindmap_mermaid?: string | null;
           audio_script?: string | null;
           processing_time_ms?: number | null;
           is_demo?: boolean;
