@@ -26,24 +26,25 @@ export interface Teacher {
   updated_at: string;
 }
 
-export interface Student {
+export interface LearnerProfile {
   id: string;
   teacher_id: string;
   school_id: string | null;
-  first_name: string;
-  last_name: string;
-  class_name: string | null;
-  grade_level: string | null;
-  profiles: string[];
-  needs: string | null;
+  profile_name: string;
+  approximate_level: string | null;
+  adaptation_slugs: string[];
+  pedagogical_needs: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
 }
 
+/** @deprecated Use LearnerProfile */
+export type Student = LearnerProfile;
+
 export interface LearningPreferences {
   id: string;
-  student_id: string;
+  profile_id: string;
   audio_enabled: boolean;
   diagrams_enabled: boolean;
   quiz_enabled: boolean;
@@ -75,7 +76,7 @@ export interface Document {
 export interface Adaptation {
   id: string;
   teacher_id: string;
-  student_id: string;
+  profile_id: string;
   document_id: string;
   profile_slugs: string[];
   status: AdaptationStatus;
@@ -131,7 +132,7 @@ export interface Feedback {
   id: string;
   adaptation_id: string;
   teacher_id: string;
-  student_id: string;
+  profile_id: string;
   understood: boolean | null;
   too_long: boolean | null;
   too_difficult: boolean | null;
@@ -153,7 +154,7 @@ export interface AdaptationProfile {
 }
 
 export interface DashboardStats {
-  studentsCount: number;
+  profilesCount: number;
   adaptationsCount: number;
   documentsCount: number;
   estimatedTimeSavedMinutes: number;
@@ -161,7 +162,7 @@ export interface DashboardStats {
 
 export interface RecentActivity {
   id: string;
-  type: "adaptation" | "document" | "student";
+  type: "adaptation" | "document" | "profile";
   title: string;
   description: string;
   created_at: string;

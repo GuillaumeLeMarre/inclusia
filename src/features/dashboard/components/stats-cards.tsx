@@ -8,8 +8,8 @@ interface StatsCardsProps {
 
 const STAT_CONFIG = [
   {
-    key: "studentsCount" as const,
-    label: "Élèves",
+    key: "profilesCount" as const,
+    label: "Profils",
     icon: Users,
     color: "text-primary bg-primary/10",
   },

@@ -8,13 +8,13 @@ import type { Adaptation } from "@/types";
 
 interface AdaptationResultProps {
   adaptation: Adaptation;
-  studentName?: string;
+  profileName?: string;
   documentTitle?: string;
 }
 
 export function AdaptationResult({
   adaptation,
-  studentName,
+  profileName,
   documentTitle,
 }: AdaptationResultProps) {
   const meta = (
@@ -30,10 +30,10 @@ export function AdaptationResult({
           </span>
         )}
       </div>
-      {(studentName || documentTitle) && (
+      {(profileName || documentTitle) && (
         <p className="text-base text-slate-500">
-          {studentName && <>Élève : <strong>{studentName}</strong></>}
-          {studentName && documentTitle && " · "}
+          {profileName && <>Profil : <strong>{profileName}</strong></>}
+          {profileName && documentTitle && " · "}
           {documentTitle && <>Document : <strong>{documentTitle}</strong></>}
         </p>
       )}

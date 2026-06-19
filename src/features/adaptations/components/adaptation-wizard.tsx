@@ -8,42 +8,42 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ADAPTATION_PROFILES, getProfileName } from "@/lib/constants/profiles";
 import { cn } from "@/lib/utils";
-import type { Document, Student } from "@/types";
+import type { Document, LearnerProfile } from "@/types";
 
 const SELECT_CLASS =
   "w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30";
 
 interface AdaptationWizardProps {
-  students: Student[];
+  profiles: LearnerProfile[];
   documents: Document[];
 }
 
-export function AdaptationWizard({ students, documents }: AdaptationWizardProps) {
+export function AdaptationWizard({ profiles, documents }: AdaptationWizardProps) {
   const router = useRouter();
-  const [studentId, setStudentId] = useState("");
+  const [profileId, setProfileId] = useState("");
   const [documentId, setDocumentId] = useState("");
-  const [profiles, setProfiles] = useState<string[]>([]);
+  const [adaptationSlugs, setAdaptationSlugs] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const selectedStudent = students.find((s) => s.id === studentId);
+  const selectedProfile = profiles.find((p) => p.id === profileId);
 
-  function toggleProfile(slug: string) {
-    setProfiles((prev) =>
-      prev.includes(slug) ? prev.filter((p) => p !== slug) : [...prev, slug],
+  function toggleSlug(slug: string) {
+    setAdaptationSlugs((prev) =>
+      prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug],
     );
   }
 
-  function selectStudentProfiles() {
-    if (selectedStudent?.profiles.length) {
-      setProfiles(selectedStudent.profiles);
+  function applyProfileSlugs() {
+    if (selectedProfile?.adaptation_slugs.length) {
+      setAdaptationSlugs(selectedProfile.adaptation_slugs);
     }
   }
 
   async function handleAdapt() {
     setError("");
-    if (!studentId || !documentId || profiles.length === 0) {
-      setError("Sélectionnez un élève, un document et au moins un profil.");
+    if (!profileId || !documentId || adaptationSlugs.length === 0) {
+      setError("Sélectionnez un profil, un document et au moins un type d'adaptation.");
       return;
     }
 
@@ -52,7 +52,7 @@ export function AdaptationWizard({ students, documents }: AdaptationWizardProps)
       const res = await fetch("/api/adapt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ studentId, documentId, profileSlugs: profiles }),
+        body: JSON.stringify({ profileId, documentId, profileSlugs: adaptationSlugs }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Adaptation échouée");
@@ -71,24 +71,28 @@ export function AdaptationWizard({ students, documents }: AdaptationWizardProps)
       )}
 
       <Card>
-        <CardHeader><CardTitle className="text-lg">1. Choisir un élève</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-lg">1. Choisir un profil</CardTitle></CardHeader>
         <CardContent>
-          {students.length === 0 ? (
-            <p className="text-base text-slate-500">Aucun élève. <a href="/students/new" className="text-primary underline">Créer un élève</a></p>
+          {profiles.length === 0 ? (
+            <p className="text-base text-slate-500">
+              Aucun profil.{" "}
+              <a href="/profiles/new" className="text-primary underline">Créer un profil</a>
+            </p>
           ) : (
             <select
               className={SELECT_CLASS}
-              value={studentId}
-              aria-label="Sélectionner un élève"
+              value={profileId}
+              aria-label="Sélectionner un profil d'adaptation"
               onChange={(e) => {
-                setStudentId(e.target.value);
-                setProfiles([]);
+                setProfileId(e.target.value);
+                setAdaptationSlugs([]);
               }}
             >
               <option value="">Sélectionner...</option>
-              {students.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.first_name} {s.last_name} {s.class_name ? `(${s.class_name})` : ""}
+              {profiles.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.profile_name}
+                  {p.approximate_level ? ` (${p.approximate_level})` : ""}
                 </option>
               ))}
             </select>
@@ -100,7 +104,10 @@ export function AdaptationWizard({ students, documents }: AdaptationWizardProps)
         <CardHeader><CardTitle className="text-lg">2. Choisir un document</CardTitle></CardHeader>
         <CardContent>
           {documents.length === 0 ? (
-            <p className="text-base text-slate-500">Aucun document. <a href="/documents" className="text-primary underline">Importer un document</a></p>
+            <p className="text-base text-slate-500">
+              Aucun document.{" "}
+              <a href="/documents" className="text-primary underline">Importer un document</a>
+            </p>
           ) : (
             <select
               className={SELECT_CLASS}
@@ -120,10 +127,10 @@ export function AdaptationWizard({ students, documents }: AdaptationWizardProps)
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <span>3. Profils d&apos;adaptation</span>
-            {selectedStudent && (
-              <Button type="button" variant="ghost" size="sm" onClick={selectStudentProfiles} className="w-full sm:w-auto">
-                Profils de l&apos;élève
+            <span>3. Types d&apos;adaptation</span>
+            {selectedProfile && (
+              <Button type="button" variant="ghost" size="sm" onClick={applyProfileSlugs} className="w-full sm:w-auto">
+                Utiliser ceux du profil
               </Button>
             )}
           </CardTitle>
@@ -134,10 +141,10 @@ export function AdaptationWizard({ students, documents }: AdaptationWizardProps)
               <button
                 key={slug}
                 type="button"
-                onClick={() => toggleProfile(slug)}
+                onClick={() => toggleSlug(slug)}
                 className={cn(
                   "rounded-full px-3 py-2 min-h-[44px] text-base font-medium border transition-colors",
-                  profiles.includes(slug)
+                  adaptationSlugs.includes(slug)
                     ? "bg-primary text-white border-primary"
                     : "bg-white text-slate-600 border-slate-200 hover:border-primary/50",
                 )}
@@ -146,9 +153,9 @@ export function AdaptationWizard({ students, documents }: AdaptationWizardProps)
               </button>
             ))}
           </div>
-          {profiles.length > 0 && (
+          {adaptationSlugs.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-1">
-              {profiles.map((slug) => (
+              {adaptationSlugs.map((slug) => (
                 <Badge key={slug}>{getProfileName(slug)}</Badge>
               ))}
             </div>
@@ -159,7 +166,7 @@ export function AdaptationWizard({ students, documents }: AdaptationWizardProps)
       <Button
         size="lg"
         className="w-full"
-        disabled={loading || !studentId || !documentId || profiles.length === 0}
+        disabled={loading || !profileId || !documentId || adaptationSlugs.length === 0}
         onClick={handleAdapt}
       >
         {loading ? (

@@ -18,6 +18,14 @@ Dans **SQL Editor**, exécutez dans l'ordre :
 1. `supabase/migrations/001_initial_schema.sql`
 2. `supabase/migrations/002_rls_policies.sql`
 3. `supabase/migrations/003_storage_setup.sql`
+4. `supabase/migrations/004_fix_auth_signup.sql` (si inscription en erreur)
+5. `supabase/migrations/005_anonymous_learner_profiles.sql` (**obligatoire** — profils anonymes)
+
+Vérifier après migration :
+
+```bash
+npm run db:verify
+```
 
 Ou via CLI (voir Option B, étape link) :
 
@@ -64,7 +72,7 @@ Testez :
 
 1. `/register` — créer un compte enseignant
 2. `/login` — se connecter
-3. `/students/new` — créer un élève (persisté en base)
+3. `/profiles/new` — créer un profil (persisté en base)
 4. `/dashboard` — stats réelles
 
 ---

@@ -2,20 +2,18 @@ import type {
   DashboardStats,
   Document,
   RecentActivity,
-  Student,
+  LearnerProfile,
 } from "@/types";
 
-const DEMO_STUDENTS: Student[] = [
+const DEMO_PROFILES: LearnerProfile[] = [
   {
     id: "demo-1",
     teacher_id: "demo",
     school_id: null,
-    first_name: "Léa",
-    last_name: "Martin",
-    class_name: "CM2-A",
-    grade_level: "CM2",
-    profiles: ["dyslexie", "tdah"],
-    needs: "Besoin de textes simplifiés et de plus de visuels",
+    profile_name: "CM2 — lecture simplifiée",
+    approximate_level: "CM2",
+    adaptation_slugs: ["dyslexie", "tdah"],
+    pedagogical_needs: "Textes simplifiés et plus de visuels",
     notes: null,
     created_at: new Date(Date.now() - 86400000 * 5).toISOString(),
     updated_at: new Date().toISOString(),
@@ -24,12 +22,10 @@ const DEMO_STUDENTS: Student[] = [
     id: "demo-2",
     teacher_id: "demo",
     school_id: null,
-    first_name: "Noah",
-    last_name: "Dupont",
-    class_name: "CM2-A",
-    grade_level: "CM2",
-    profiles: ["tsa"],
-    needs: "Consignes courtes et prévisibles",
+    profile_name: "Cycle 3 — consignes courtes",
+    approximate_level: "CM1-CM2",
+    adaptation_slugs: ["tsa"],
+    pedagogical_needs: "Consignes courtes et prévisibles",
     notes: null,
     created_at: new Date(Date.now() - 86400000 * 3).toISOString(),
     updated_at: new Date().toISOString(),
@@ -38,12 +34,10 @@ const DEMO_STUDENTS: Student[] = [
     id: "demo-3",
     teacher_id: "demo",
     school_id: null,
-    first_name: "Emma",
-    last_name: "Bernard",
-    class_name: "CM2-B",
-    grade_level: "CM2",
-    profiles: ["allophone"],
-    needs: "Vocabulaire simplifié avec traductions",
+    profile_name: "6e — vocabulaire allophone",
+    approximate_level: "6e",
+    adaptation_slugs: ["allophone"],
+    pedagogical_needs: "Vocabulaire simplifié avec traductions",
     notes: null,
     created_at: new Date(Date.now() - 86400000).toISOString(),
     updated_at: new Date().toISOString(),
@@ -87,8 +81,8 @@ const DEMO_ACTIVITY: RecentActivity[] = [
   {
     id: "act-1",
     type: "adaptation",
-    title: "Adaptation pour Léa Martin",
-    description: "La Révolution française — Profil dyslexie",
+    title: "Adaptation — CM2 — lecture simplifiée",
+    description: "La Révolution française — Dyslexie",
     created_at: new Date(Date.now() - 3600000).toISOString(),
   },
   {
@@ -100,25 +94,28 @@ const DEMO_ACTIVITY: RecentActivity[] = [
   },
   {
     id: "act-3",
-    type: "student",
-    title: "Élève créé",
-    description: "Emma Bernard — CM2-B",
+    type: "profile",
+    title: "Profil créé",
+    description: "6e — vocabulaire allophone",
     created_at: new Date(Date.now() - 86400000).toISOString(),
   },
 ];
 
 export function getDemoStats(): DashboardStats {
   return {
-    studentsCount: DEMO_STUDENTS.length,
+    profilesCount: DEMO_PROFILES.length,
     adaptationsCount: 7,
     documentsCount: DEMO_DOCUMENTS.length,
     estimatedTimeSavedMinutes: 145,
   };
 }
 
-export function getDemoStudents(): Student[] {
-  return DEMO_STUDENTS;
+export function getDemoProfiles(): LearnerProfile[] {
+  return DEMO_PROFILES;
 }
+
+/** @deprecated Use getDemoProfiles */
+export const getDemoStudents = getDemoProfiles;
 
 export function getDemoDocuments(): Document[] {
   return DEMO_DOCUMENTS;

@@ -38,7 +38,7 @@ export default async function DashboardPage() {
             </p>
             <ol className="space-y-4">
               {[
-                { step: 1, label: "Créer un élève", href: "/students/new" },
+                { step: 1, label: "Créer un profil", href: "/profiles/new" },
                 { step: 2, label: "Importer un document", href: "/documents" },
                 { step: 3, label: "Lancer une adaptation", href: "/adaptations/new" },
               ].map(({ step, label, href }) => (

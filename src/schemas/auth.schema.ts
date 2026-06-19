@@ -20,25 +20,6 @@ export const forgotPasswordSchema = z.object({
   email: z.string().email("Email invalide"),
 });
 
-export const studentSchema = z.object({
-  firstName: z.string().min(1, "Prénom requis"),
-  lastName: z.string().min(1, "Nom requis"),
-  className: z.string().optional(),
-  gradeLevel: z.string().optional(),
-  profiles: z.array(z.string()).min(1, "Sélectionnez au moins un profil"),
-  needs: z.string().optional(),
-  notes: z.string().optional(),
-  preferences: z.object({
-    audioEnabled: z.boolean(),
-    diagramsEnabled: z.boolean(),
-    quizEnabled: z.boolean(),
-    simplifiedVocab: z.boolean(),
-    adaptedFont: z.boolean(),
-    simplifiedText: z.boolean(),
-  }),
-});
-
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
-export type StudentInput = z.infer<typeof studentSchema>;

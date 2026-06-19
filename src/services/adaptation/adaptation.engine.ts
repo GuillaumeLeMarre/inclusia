@@ -3,8 +3,8 @@ import type { Database } from "@/types/database";
 import { findDocumentById } from "@/repositories/documents.repository";
 import {
   findLearningPreferences,
-  findStudentById,
-} from "@/repositories/students.repository";
+  findProfileById,
+} from "@/repositories/profiles.repository";
 import { createAdaptation } from "@/repositories/adaptations.repository";
 import { buildAdaptationPrompt } from "@/prompts/prompt-builder";
 import {
@@ -16,7 +16,7 @@ import { generateAdaptationWithAI } from "@/services/ai/adaptation.ai.service";
 
 export interface RunAdaptationInput {
   teacherId: string;
-  studentId: string;
+  profileId: string;
   documentId: string;
   profileSlugs: string[];
 }
@@ -27,10 +27,10 @@ export async function runAdaptationEngine(
 ) {
   const start = Date.now();
 
-  const [student, document, preferences] = await Promise.all([
-    findStudentById(client, input.teacherId, input.studentId),
+  const [profile, document, preferences] = await Promise.all([
+    findProfileById(client, input.teacherId, input.profileId),
     findDocumentById(client, input.teacherId, input.documentId),
-    findLearningPreferences(client, input.studentId),
+    findLearningPreferences(client, input.profileId),
   ]);
 
   const sourceText = document.extracted_text?.trim();
@@ -38,14 +38,14 @@ export async function runAdaptationEngine(
     throw new Error("Le document n'a pas de texte extractible. Réimportez-le.");
   }
 
-  const profiles = input.profileSlugs.length > 0
+  const slugs = input.profileSlugs.length > 0
     ? input.profileSlugs
-    : student.profiles;
+    : profile.adaptation_slugs;
 
   const { system, user } = await buildAdaptationPrompt({
-    student,
+    profile,
     preferences,
-    profileSlugs: profiles,
+    profileSlugs: slugs,
     sourceText,
     documentTitle: document.title,
     supabase: client,
@@ -56,19 +56,19 @@ export async function runAdaptationEngine(
 
   try {
     output = isDemo
-      ? generateDemoAdaptation(student, document.title, sourceText, profiles)
+      ? generateDemoAdaptation(profile, document.title, sourceText, slugs)
       : await generateAdaptationWithAI(system, user);
   } catch {
-    output = generateDemoAdaptation(student, document.title, sourceText, profiles);
+    output = generateDemoAdaptation(profile, document.title, sourceText, slugs);
   }
 
   const processingTimeMs = Date.now() - start;
 
   return createAdaptation(client, {
     teacherId: input.teacherId,
-    studentId: input.studentId,
+    profileId: input.profileId,
     documentId: input.documentId,
-    profileSlugs: profiles,
+    profileSlugs: slugs,
     status: isDemo ? "demo" : "completed",
     adaptedContent: output.adapted_content,
     summary: output.summary,

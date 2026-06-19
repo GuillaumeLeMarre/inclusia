@@ -10,7 +10,7 @@ interface RecentActivityListProps {
 const ICONS = {
   adaptation: Sparkles,
   document: FileText,
-  student: Users,
+  profile: Users,
 };
 
 export function RecentActivityList({ activities }: RecentActivityListProps) {

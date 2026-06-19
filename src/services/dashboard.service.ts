@@ -4,23 +4,25 @@ import {
   getDemoActivity,
   getDemoDocuments,
   getDemoStats,
-  getDemoStudents,
+  getDemoProfiles,
 } from "@/services/demo/demo-data.service";
-import type { DashboardStats, Document, RecentActivity, Student } from "@/types";
+import type { DashboardStats, Document, RecentActivity, LearnerProfile } from "@/types";
 
 import type { Tables } from "@/types/database";
 
 type AdaptationActivityRow = {
   id: string;
   created_at: string;
-  students: { first_name: string; last_name: string } | null;
+  learner_profiles: { profile_name: string } | null;
   documents: { title: string } | null;
 };
 
-function mapStudentRow(row: Tables<"students">): Student {
+function mapProfileRow(row: Tables<"learner_profiles">): LearnerProfile {
   return {
     ...row,
-    profiles: Array.isArray(row.profiles) ? (row.profiles as string[]) : [],
+    adaptation_slugs: Array.isArray(row.adaptation_slugs)
+      ? (row.adaptation_slugs as string[])
+      : [],
   };
 }
 
@@ -40,8 +42,8 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return getDemoStats();
 
-  const [students, documents, adaptations] = await Promise.all([
-    supabase.from("students").select("id", { count: "exact", head: true }),
+  const [profiles, documents, adaptations] = await Promise.all([
+    supabase.from("learner_profiles").select("id", { count: "exact", head: true }),
     supabase.from("documents").select("id", { count: "exact", head: true }),
     supabase.from("adaptations").select("id", { count: "exact", head: true }),
   ]);
@@ -49,7 +51,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   const adaptationsCount = adaptations.count ?? 0;
 
   return {
-    studentsCount: students.count ?? 0,
+    profilesCount: profiles.count ?? 0,
     adaptationsCount,
     documentsCount: documents.count ?? 0,
     estimatedTimeSavedMinutes: adaptationsCount * 20,
@@ -62,7 +64,7 @@ export async function getRecentActivity(): Promise<RecentActivity[]> {
   const supabase = await createClient();
   const { data: adaptations } = await supabase
     .from("adaptations")
-    .select("id, created_at, students(first_name, last_name), documents(title)")
+    .select("id, created_at, learner_profiles(profile_name), documents(title)")
     .order("created_at", { ascending: false })
     .limit(5)
     .returns<AdaptationActivityRow[]>();
@@ -70,30 +72,35 @@ export async function getRecentActivity(): Promise<RecentActivity[]> {
   if (!adaptations?.length) return getDemoActivity();
 
   return adaptations.map((a) => {
-    const student = a.students;
+    const profile = a.learner_profiles;
     const doc = a.documents;
     return {
       id: a.id,
       type: "adaptation" as const,
-      title: `Adaptation pour ${student?.first_name ?? ""} ${student?.last_name ?? ""}`.trim(),
+      title: profile?.profile_name
+        ? `Adaptation — ${profile.profile_name}`
+        : "Adaptation générée",
       description: doc?.title ?? "Document",
       created_at: a.created_at,
     };
   });
 }
 
-export async function getStudents(): Promise<Student[]> {
-  if (!isSupabaseConfigured()) return getDemoStudents();
+export async function getProfiles(): Promise<LearnerProfile[]> {
+  if (!isSupabaseConfigured()) return getDemoProfiles();
 
   const supabase = await createClient();
   const { data } = await supabase
-    .from("students")
+    .from("learner_profiles")
     .select("*")
     .order("created_at", { ascending: false });
 
-  if (!data) return getDemoStudents();
-  return data.map(mapStudentRow);
+  if (!data) return getDemoProfiles();
+  return data.map(mapProfileRow);
 }
+
+/** @deprecated Use getProfiles */
+export const getStudents = getProfiles;
 
 export async function getDocuments(): Promise<Document[]> {
   if (!isSupabaseConfigured()) return getDemoDocuments();

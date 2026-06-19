@@ -17,18 +17,18 @@ test.describe("Navigation responsive", () => {
     expect(hasHorizontalScroll).toBe(false);
   });
 
-  test("menu mobile ouvre le drawer et navigue vers Élèves", async ({ page, isMobile }) => {
+  test("menu mobile ouvre le drawer et navigue vers Profils", async ({ page, isMobile }) => {
     test.skip(!isMobile, "Test réservé aux viewports mobile");
 
     await page.goto("/dashboard");
     await openMobileNav(page);
 
-    const studentsLink = page.getByRole("link", { name: "Élèves" });
-    await expect(studentsLink).toBeVisible();
-    await studentsLink.click();
+    const profilesLink = page.getByRole("link", { name: "Profils" });
+    await expect(profilesLink).toBeVisible();
+    await profilesLink.click();
 
-    await expect(page).toHaveURL(/\/students/);
-    await expect(page.getByRole("heading", { name: "Élèves" })).toBeVisible();
+    await expect(page).toHaveURL(/\/profiles/);
+    await expect(page.getByRole("heading", { name: "Profils" })).toBeVisible();
   });
 
   test("navigation vers documents et adaptations", async ({ page }) => {
@@ -40,15 +40,15 @@ test.describe("Navigation responsive", () => {
     await expect(page.getByRole("heading", { name: "Adaptations" })).toBeVisible();
   });
 
-  test("formulaire nouvel élève — champs pleine largeur", async ({ page, isMobile }) => {
-    await page.goto("/students/new");
-    await expect(page.getByRole("heading", { name: "Nouvel élève" })).toBeVisible();
+  test("formulaire nouveau profil — champs pleine largeur", async ({ page, isMobile }) => {
+    await page.goto("/profiles/new");
+    await expect(page.getByRole("heading", { name: "Nouveau profil" })).toBeVisible();
 
-    const firstName = page.getByLabel("Prénom *");
-    await expect(firstName).toBeVisible();
+    const profileName = page.getByLabel("Nom du profil *");
+    await expect(profileName).toBeVisible();
 
     if (isMobile) {
-      const box = await firstName.boundingBox();
+      const box = await profileName.boundingBox();
       const viewport = page.viewportSize();
       expect(box).not.toBeNull();
       expect(viewport).not.toBeNull();

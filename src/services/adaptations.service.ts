@@ -24,15 +24,15 @@ export async function getAdaptationsList(): Promise<AdaptationListItem[]> {
   const rows = await findAdaptationsByTeacher(supabase, user.id);
 
   return rows.map((row) => {
-    const student = row.students as { first_name: string; last_name: string } | null;
+    const profile = row.learner_profiles as { profile_name: string } | null;
     const doc = row.documents as { title: string } | null;
-    const profiles = Array.isArray(row.profile_slugs) ? (row.profile_slugs as string[]) : [];
+    const slugs = Array.isArray(row.profile_slugs) ? (row.profile_slugs as string[]) : [];
 
     return {
       id: row.id,
       title: doc?.title ?? "Document",
-      subtitle: student ? `${student.first_name} ${student.last_name}` : "Élève",
-      profiles: profiles.map(getProfileName),
+      subtitle: profile?.profile_name ?? "Profil",
+      profiles: slugs.map(getProfileName),
       status: row.status,
       isDemo: row.is_demo,
       createdAt: formatDate(row.created_at),

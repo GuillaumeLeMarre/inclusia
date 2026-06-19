@@ -30,9 +30,7 @@ export default async function AdaptationDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const studentName = adaptation.student
-    ? `${adaptation.student.first_name} ${adaptation.student.last_name}`
-    : undefined;
+  const profileName = adaptation.learnerProfile?.profile_name;
 
   return (
     <>
@@ -48,7 +46,7 @@ export default async function AdaptationDetailPage({ params }: PageProps) {
       <PageContainer>
         <AdaptationResult
           adaptation={adaptation}
-          studentName={studentName}
+          profileName={profileName}
           documentTitle={adaptation.document?.title}
         />
       </PageContainer>

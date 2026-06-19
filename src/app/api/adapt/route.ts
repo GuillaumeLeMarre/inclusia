@@ -21,7 +21,7 @@ export async function POST(request: Request) {
 
     const adaptation = await runAdaptationEngine(supabase, {
       teacherId,
-      studentId: parsed.data.studentId,
+      profileId: parsed.data.profileId,
       documentId: parsed.data.documentId,
       profileSlugs: parsed.data.profileSlugs,
     });

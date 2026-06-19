@@ -68,17 +68,15 @@ export interface Database {
           },
         ];
       };
-      students: {
+      learner_profiles: {
         Row: {
           id: string;
           teacher_id: string;
           school_id: string | null;
-          first_name: string;
-          last_name: string;
-          class_name: string | null;
-          grade_level: string | null;
-          profiles: Json;
-          needs: string | null;
+          profile_name: string;
+          approximate_level: string | null;
+          adaptation_slugs: Json;
+          pedagogical_needs: string | null;
           notes: string | null;
           created_at: string;
           updated_at: string;
@@ -87,15 +85,13 @@ export interface Database {
           id?: string;
           teacher_id: string;
           school_id?: string | null;
-          first_name: string;
-          last_name: string;
-          class_name?: string | null;
-          grade_level?: string | null;
-          profiles?: Json;
-          needs?: string | null;
+          profile_name: string;
+          approximate_level?: string | null;
+          adaptation_slugs?: Json;
+          pedagogical_needs?: string | null;
           notes?: string | null;
         };
-        Update: Partial<Database["public"]["Tables"]["students"]["Insert"]>;
+        Update: Partial<Database["public"]["Tables"]["learner_profiles"]["Insert"]>;
         Relationships: [
           {
             foreignKeyName: "students_teacher_id_fkey";
@@ -109,7 +105,7 @@ export interface Database {
       learning_preferences: {
         Row: {
           id: string;
-          student_id: string;
+          profile_id: string;
           audio_enabled: boolean;
           diagrams_enabled: boolean;
           quiz_enabled: boolean;
@@ -123,7 +119,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
-          student_id: string;
+          profile_id: string;
           audio_enabled?: boolean;
           diagrams_enabled?: boolean;
           quiz_enabled?: boolean;
@@ -173,7 +169,7 @@ export interface Database {
         Row: {
           id: string;
           teacher_id: string;
-          student_id: string;
+          profile_id: string;
           document_id: string;
           profile_slugs: Json;
           status: AdaptationStatus;
@@ -195,7 +191,7 @@ export interface Database {
         Insert: {
           id?: string;
           teacher_id: string;
-          student_id: string;
+          profile_id: string;
           document_id: string;
           profile_slugs?: Json;
           status?: AdaptationStatus;
@@ -216,9 +212,9 @@ export interface Database {
         Relationships: [
           {
             foreignKeyName: "adaptations_student_id_fkey";
-            columns: ["student_id"];
+            columns: ["profile_id"];
             isOneToOne: false;
-            referencedRelation: "students";
+            referencedRelation: "learner_profiles";
             referencedColumns: ["id"];
           },
           {
@@ -235,7 +231,7 @@ export interface Database {
           id: string;
           adaptation_id: string;
           teacher_id: string;
-          student_id: string;
+          profile_id: string;
           understood: boolean | null;
           too_long: boolean | null;
           too_difficult: boolean | null;
@@ -248,7 +244,7 @@ export interface Database {
           id?: string;
           adaptation_id: string;
           teacher_id: string;
-          student_id: string;
+          profile_id: string;
           understood?: boolean | null;
           too_long?: boolean | null;
           too_difficult?: boolean | null;

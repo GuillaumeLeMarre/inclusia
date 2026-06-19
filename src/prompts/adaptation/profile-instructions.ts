@@ -11,7 +11,7 @@ export const PROFILE_INSTRUCTIONS: Record<string, string> = {
   allophone: "Français simplifié (FLE). Définir chaque terme technique. Traductions contextuelles si utile.",
   difficultes_apprentissage: "Découpage progressif. Exemples concrets. Rappels et reformulations.",
   hpi: "Approfondissements optionnels. Liens interdisciplinaires. Éviter la répétition inutile.",
-  personnalise: "Adapter selon les besoins spécifiques décrits dans le profil élève.",
+  personnalise: "Adapter selon les besoins pédagogiques spécifiques décrits dans le profil.",
 };
 
 export function getProfileInstructions(slugs: string[]): string {

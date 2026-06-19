@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
-import type { Student } from "@/types";
+import type { LearnerProfile } from "@/types";
 import {
   ADAPTATION_OUTPUT_SCHEMA,
   ADAPTATION_SYSTEM_PROMPT,
@@ -8,7 +8,7 @@ import {
 import { getProfileInstructions } from "@/prompts/adaptation/profile-instructions";
 
 interface BuildPromptInput {
-  student: Student;
+  profile: LearnerProfile;
   preferences: {
     audio_enabled: boolean;
     diagrams_enabled: boolean;
@@ -34,12 +34,15 @@ export async function buildAdaptationPrompt(input: BuildPromptInput) {
     : "Préférences : non renseignées";
 
   const user = `Document : "${input.documentTitle}"
-Élève : ${input.student.first_name} ${input.student.last_name}
-Classe : ${input.student.class_name ?? "N/A"}
-Besoins : ${input.student.needs ?? "Non précisés"}
-Profils d'adaptation :
+Profil d'adaptation : ${input.profile.profile_name}
+Niveau approximatif : ${input.profile.approximate_level ?? "Non précisé"}
+Besoins pédagogiques : ${input.profile.pedagogical_needs ?? "Non précisés"}
+Notes pédagogiques : ${input.profile.notes ?? "Aucune"}
+Types d'adaptation :
 ${profileBlock}
 ${preferencesBlock}
+
+IMPORTANT : Ne jamais inventer ni utiliser de nom d'élève, de diagnostic médical ou de données nominatives.
 
 Contenu source :
 """

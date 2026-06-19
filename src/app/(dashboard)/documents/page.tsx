@@ -11,7 +11,7 @@ export default async function DocumentsPage() {
     <>
       <AppHeader
         title="Documents"
-        description="Importez vos cours pour les adapter aux besoins de vos élèves"
+        description="Importez vos cours pour les adapter selon vos profils pédagogiques"
       />
       <PageContainer className="space-y-6 md:space-y-8">
         <DocumentUploadForm />

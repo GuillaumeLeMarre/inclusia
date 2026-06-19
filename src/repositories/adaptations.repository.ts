@@ -11,7 +11,7 @@ type Client = SupabaseClient<Database>;
 
 export interface AdaptationResultInput {
   teacherId: string;
-  studentId: string;
+  profileId: string;
   documentId: string;
   profileSlugs: string[];
   status: Adaptation["status"];
@@ -48,7 +48,7 @@ function mapAdaptation(row: Database["public"]["Tables"]["adaptations"]["Row"]):
 export async function findAdaptationsByTeacher(client: Client, teacherId: string) {
   const { data, error } = await client
     .from("adaptations")
-    .select("*, students(first_name, last_name), documents(title)")
+    .select("*, learner_profiles(profile_name), documents(title)")
     .eq("teacher_id", teacherId)
     .order("created_at", { ascending: false });
 
@@ -59,7 +59,7 @@ export async function findAdaptationsByTeacher(client: Client, teacherId: string
 export async function findAdaptationById(client: Client, teacherId: string, id: string) {
   const { data, error } = await client
     .from("adaptations")
-    .select("*, students(first_name, last_name), documents(title)")
+    .select("*, learner_profiles(profile_name), documents(title)")
     .eq("id", id)
     .eq("teacher_id", teacherId)
     .single();
@@ -67,7 +67,7 @@ export async function findAdaptationById(client: Client, teacherId: string, id: 
   if (error) throw error;
   return {
     ...mapAdaptation(data),
-    student: data.students as { first_name: string; last_name: string } | null,
+    learnerProfile: data.learner_profiles as { profile_name: string } | null,
     document: data.documents as { title: string } | null,
   };
 }
@@ -77,7 +77,7 @@ export async function createAdaptation(client: Client, input: AdaptationResultIn
     .from("adaptations")
     .insert({
       teacher_id: input.teacherId,
-      student_id: input.studentId,
+      profile_id: input.profileId,
       document_id: input.documentId,
       profile_slugs: input.profileSlugs,
       status: input.status,
