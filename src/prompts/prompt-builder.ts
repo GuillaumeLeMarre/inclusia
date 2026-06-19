@@ -7,6 +7,9 @@ import {
 } from "@/prompts/adaptation/system.prompt";
 import { getProfileInstructions } from "@/prompts/adaptation/profile-instructions";
 
+import { FALC_SIMPLIFIED_LEVEL_HINT } from "@/prompts/falc/falc-system.prompt";
+import type { AdaptationLevel } from "@/types/adaptation-level";
+
 interface BuildPromptInput {
   profile: LearnerProfile;
   preferences: {
@@ -18,6 +21,7 @@ interface BuildPromptInput {
   profileSlugs: string[];
   sourceText: string;
   documentTitle: string;
+  adaptationLevel?: AdaptationLevel;
   supabase?: SupabaseClient<Database>;
 }
 
@@ -33,6 +37,13 @@ export async function buildAdaptationPrompt(input: BuildPromptInput) {
     ? `Préférences : audio=${input.preferences.audio_enabled}, schémas=${input.preferences.diagrams_enabled}, quiz=${input.preferences.quiz_enabled}, texte simplifié=${input.preferences.simplified_text}`
     : "Préférences : non renseignées";
 
+  const levelBlock =
+    input.adaptationLevel === "simplified"
+      ? `\n${FALC_SIMPLIFIED_LEVEL_HINT}\n`
+      : input.adaptationLevel === "falc"
+        ? "\nNiveau FALC : une version FALC complète sera produite après adaptation.\n"
+        : "";
+
   const user = `Document : "${input.documentTitle}"
 Profil d'adaptation : ${input.profile.profile_name}
 Niveau approximatif : ${input.profile.approximate_level ?? "Non précisé"}
@@ -41,7 +52,7 @@ Notes pédagogiques : ${input.profile.notes ?? "Aucune"}
 Types d'adaptation :
 ${profileBlock}
 ${preferencesBlock}
-
+${levelBlock}
 IMPORTANT : Ne jamais inventer ni utiliser de nom d'élève, de diagnostic médical ou de données nominatives.
 
 Contenu source :

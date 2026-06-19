@@ -2,6 +2,7 @@ import { AppHeader } from "@/components/layout/app-header";
 import { PageContainer } from "@/components/layout/page-container";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ReadingModeSettings } from "@/features/settings/components/reading-mode-settings";
 import { getAppConfig } from "@/lib/config";
 
 export default function SettingsPage() {
@@ -31,6 +32,14 @@ export default function SettingsPage() {
                 {isSupabaseConfigured ? "Connecté" : "Non configuré"}
               </Badge>
             </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Mode lecture</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ReadingModeSettings />
           </CardContent>
         </Card>
         <Card>

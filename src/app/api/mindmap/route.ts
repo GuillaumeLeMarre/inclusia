@@ -23,6 +23,7 @@ export async function POST(request: Request) {
       supabase,
       teacherId,
       parsed.data.adaptationId,
+      parsed.data.forceRegenerate ?? false,
     );
 
     return NextResponse.json(result);

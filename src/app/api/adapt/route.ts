@@ -24,6 +24,8 @@ export async function POST(request: Request) {
       profileId: parsed.data.profileId,
       documentId: parsed.data.documentId,
       profileSlugs: parsed.data.profileSlugs,
+      adaptationLevel: parsed.data.adaptationLevel,
+      generatePictograms: parsed.data.generatePictograms,
     });
 
     return NextResponse.json({ adaptation }, { status: 201 });

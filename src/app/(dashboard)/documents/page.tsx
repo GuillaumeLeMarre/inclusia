@@ -4,7 +4,12 @@ import { DocumentUploadForm } from "@/features/documents/components/document-upl
 import { DocumentList } from "@/features/documents/components/document-list";
 import { getDocuments } from "@/services/dashboard.service";
 
-export default async function DocumentsPage() {
+interface DocumentsPageProps {
+  searchParams: Promise<{ doc?: string }>;
+}
+
+export default async function DocumentsPage({ searchParams }: DocumentsPageProps) {
+  const { doc: highlightId } = await searchParams;
   const documents = await getDocuments();
 
   return (
@@ -17,7 +22,7 @@ export default async function DocumentsPage() {
         <DocumentUploadForm />
         <div>
           <h2 className="text-lg font-semibold mb-4">Documents importés</h2>
-          <DocumentList documents={documents} />
+          <DocumentList documents={documents} highlightId={highlightId} />
         </div>
       </PageContainer>
     </>

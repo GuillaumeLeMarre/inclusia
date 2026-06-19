@@ -4,6 +4,8 @@ export type DocumentStatus = "pending" | "processing" | "ready" | "error";
 export type AdaptationStatus = "pending" | "processing" | "completed" | "error" | "demo";
 export type DocumentFormat = "pdf" | "docx" | "txt";
 
+export type { AdaptationLevel } from "@/types/adaptation-level";
+
 export interface School {
   id: string;
   name: string;
@@ -80,6 +82,11 @@ export interface Adaptation {
   document_id: string;
   profile_slugs: string[];
   status: AdaptationStatus;
+  adaptation_level: import("@/types/adaptation-level").AdaptationLevel;
+  falc_score: number | null;
+  falc_content: string | null;
+  generate_pictograms: boolean;
+  falc_pictograms: import("@/types/falc").FalcPictogramsData | null;
   adapted_content: string | null;
   summary: string | null;
   memory_sheet: string | null;

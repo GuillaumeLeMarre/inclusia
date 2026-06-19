@@ -11,6 +11,7 @@ export const PROFILE_INSTRUCTIONS: Record<string, string> = {
   allophone: "Français simplifié (FLE). Définir chaque terme technique. Traductions contextuelles si utile.",
   difficultes_apprentissage: "Découpage progressif. Exemples concrets. Rappels et reformulations.",
   hpi: "Approfondissements optionnels. Liens interdisciplinaires. Éviter la répétition inutile.",
+  falc: "FALC strict : max 12 mots par phrase, une idée par phrase, vocabulaire courant, listes, exemples concrets, voix active.",
   personnalise: "Adapter selon les besoins pédagogiques spécifiques décrits dans le profil.",
 };
 

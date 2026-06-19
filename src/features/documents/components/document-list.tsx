@@ -1,11 +1,12 @@
 import { FileText, FileType2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { formatDate, formatFileSize } from "@/lib/utils";
+import { formatDate, formatFileSize, cn } from "@/lib/utils";
 import type { Document } from "@/types";
 
 interface DocumentListProps {
   documents: Document[];
+  highlightId?: string;
 }
 
 const STATUS_LABELS: Record<Document["status"], { label: string; variant: "success" | "warning" | "outline" }> = {
@@ -15,7 +16,7 @@ const STATUS_LABELS: Record<Document["status"], { label: string; variant: "succe
   error: { label: "Erreur", variant: "outline" },
 };
 
-export function DocumentList({ documents }: DocumentListProps) {
+export function DocumentList({ documents, highlightId }: DocumentListProps) {
   if (documents.length === 0) {
     return (
       <Card>
@@ -35,7 +36,7 @@ export function DocumentList({ documents }: DocumentListProps) {
       {/* Mobile: cards */}
       <div className="space-y-3 md:hidden">
         {documents.map((doc) => (
-          <DocumentMobileCard key={doc.id} doc={doc} />
+          <DocumentMobileCard key={doc.id} doc={doc} highlighted={doc.id === highlightId} />
         ))}
       </div>
 
@@ -55,7 +56,14 @@ export function DocumentList({ documents }: DocumentListProps) {
             {documents.map((doc) => {
               const status = STATUS_LABELS[doc.status];
               return (
-                <tr key={doc.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50">
+                <tr
+                  key={doc.id}
+                  id={doc.id === highlightId ? "document-highlight" : undefined}
+                  className={cn(
+                    "border-b border-slate-100 last:border-0 hover:bg-slate-50/50",
+                    doc.id === highlightId && "bg-primary/5 ring-2 ring-inset ring-primary/30",
+                  )}
+                >
                   <td className="px-4 py-3 font-medium">{doc.title}</td>
                   <td className="px-4 py-3 uppercase text-slate-600">{doc.file_type}</td>
                   <td className="px-4 py-3 text-slate-600">{formatFileSize(doc.file_size)}</td>
@@ -71,10 +79,19 @@ export function DocumentList({ documents }: DocumentListProps) {
   );
 }
 
-function DocumentMobileCard({ doc }: { doc: Document }) {
+function DocumentMobileCard({
+  doc,
+  highlighted = false,
+}: {
+  doc: Document;
+  highlighted?: boolean;
+}) {
   const status = STATUS_LABELS[doc.status];
   return (
-    <Card>
+    <Card
+      id={highlighted ? "document-highlight" : undefined}
+      className={cn(highlighted && "ring-2 ring-primary/40")}
+    >
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start gap-3">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-secondary/10">

@@ -49,3 +49,16 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+@font-face {
+  font-family: OpenDyslexic;
+  src: url("https://cdn.jsdelivr.net/npm/opendyslexic@0.0.1-alpha.3/opendyslexic-regular.woff")
+    format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.font-opendyslexic {
+  font-family: OpenDyslexic, var(--font-sans), system-ui, sans-serif;
+}

@@ -4,9 +4,18 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AdaptationRenderer } from "@/components/adaptations/AdaptationRenderer";
+import { AdaptationProfileSummary } from "@/features/adaptations/components/adaptation-profile-summary";
+import { AdaptationExportButton } from "@/features/adaptations/components/adaptation-export-button";
+import { SchemaExportRenderer } from "@/features/adaptations/components/schema-export-renderer";
+import { DocumentSourceLinkCard } from "@/features/adaptations/components/document-source-link-card";
+import { FalcScoreBadge } from "@/features/falc/components/falc-score-badge";
+import { FalcPictogramsPanel } from "@/features/falc/components/falc-pictograms-panel";
 import { SchemaPanel } from "@/features/mindmaps/components/schema-panel";
+import { useAdaptationSchema } from "@/features/mindmaps/hooks/use-adaptation-schema";
 import { getProfileName } from "@/lib/constants/profiles";
 import type { Adaptation } from "@/types";
+import type { MermaidGenerationResult } from "@/types/mindmap";
 
 interface AdaptationResultProps {
   adaptation: Adaptation;
@@ -20,6 +29,17 @@ export function AdaptationResult({
   documentTitle,
 }: AdaptationResultProps) {
   const [activeTab, setActiveTab] = useState("resume");
+  const schemaEnabled = activeTab === "resume" || activeTab === "schema";
+  const schemaState = useAdaptationSchema(
+    adaptation.id,
+    adaptation.mindmap_mermaid,
+    schemaEnabled,
+  );
+
+  const isFalc = adaptation.adaptation_level === "falc";
+  const courseContent = isFalc && adaptation.falc_content
+    ? adaptation.falc_content
+    : adaptation.adapted_content;
 
   return (
     <div className="space-y-6">
@@ -29,38 +49,98 @@ export function AdaptationResult({
         documentTitle={documentTitle}
       />
 
+      <AdaptationProfileSummary
+        adaptation={adaptation}
+        profileName={profileName}
+        documentTitle={documentTitle}
+      />
+
+      <SchemaExportRenderer mermaidCode={schemaState.result?.mermaidCode} />
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        {isFalc && adaptation.falc_score != null && (
+          <FalcScoreBadge score={adaptation.falc_score} />
+        )}
+        <AdaptationExportButton
+          adaptationId={adaptation.id}
+          adaptationLevel={adaptation.adaptation_level}
+          schema={schemaState.result}
+          ensureSchemaLoaded={async () => {
+            if (schemaState.result?.mermaidCode?.trim()) {
+              return schemaState.result.mermaidCode;
+            }
+            const loaded = await schemaState.loadDiagram(false);
+            return loaded?.mermaidCode?.trim() ?? null;
+          }}
+          className={isFalc && adaptation.falc_score != null ? "" : "sm:ml-auto"}
+        />
+      </div>
+
+      <FalcPictogramsPanel
+        adaptationId={adaptation.id}
+        initialData={adaptation.falc_pictograms}
+        enabled={adaptation.generate_pictograms}
+        compact
+      />
+
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList
-          className="grid w-full grid-cols-2 h-auto gap-1 sm:grid-cols-4"
+          className={`grid w-full h-auto gap-1 ${
+            adaptation.generate_pictograms
+              ? isFalc
+                ? "grid-cols-2"
+                : "grid-cols-2 sm:grid-cols-3"
+              : isFalc
+                ? "grid-cols-1"
+                : "grid-cols-2"
+          }`}
           aria-label="Sections de l'adaptation"
         >
           <TabsTrigger value="resume" className="min-h-[44px]">Résumé</TabsTrigger>
-          <TabsTrigger value="fiche" className="min-h-[44px]">Fiche mémoire</TabsTrigger>
-          <TabsTrigger value="quiz" className="min-h-[44px]">Quiz</TabsTrigger>
-          <TabsTrigger value="schema" className="min-h-[44px]">Schéma</TabsTrigger>
+          {!isFalc && (
+            <TabsTrigger value="schema" className="min-h-[44px]">Schéma</TabsTrigger>
+          )}
+          {adaptation.generate_pictograms && (
+            <TabsTrigger value="pictogrammes" className="min-h-[44px]">Pictogrammes</TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="resume" className="space-y-4 mt-4">
-          <ResultCard title="Résumé" content={adaptation.summary} />
-          <ResultCard title="Cours adapté" content={adaptation.adapted_content} />
-        </TabsContent>
-
-        <TabsContent value="fiche" className="space-y-4 mt-4">
-          <ResultCard title="Fiche mémoire" content={adaptation.memory_sheet} />
-          <ResultCard title="Consignes adaptées" content={adaptation.adapted_instructions} />
-        </TabsContent>
-
-        <TabsContent value="quiz" className="mt-4">
-          <QuizSection adaptation={adaptation} />
-        </TabsContent>
-
-        <TabsContent value="schema" className="mt-4" forceMount>
-          <SchemaPanel
-            adaptationId={adaptation.id}
-            initialMermaid={adaptation.mindmap_mermaid}
-            active={activeTab === "schema"}
+          <DocumentSourceLinkCard
+            documentId={adaptation.document_id}
+            documentTitle={documentTitle}
+          />
+          <ResultCard
+            title={isFalc ? "Cours adapté (FALC)" : "Cours adapté"}
+            content={courseContent}
+            embeddedSchema={schemaState.result}
+            schemaLoading={schemaState.loading}
+            schemaEnabled={activeTab === "resume"}
+            appendSchemaIfMissing={isFalc}
+            readingMode={isFalc ? "falc" : undefined}
           />
         </TabsContent>
+
+        {!isFalc && (
+          <TabsContent value="schema" className="mt-4" forceMount>
+            <SchemaPanel
+              adaptationId={adaptation.id}
+              initialMermaid={adaptation.mindmap_mermaid}
+              active={activeTab === "schema"}
+              schemaState={schemaState}
+            />
+          </TabsContent>
+        )}
+
+        {adaptation.generate_pictograms && (
+          <TabsContent value="pictogrammes" className="mt-4">
+            <FalcPictogramsPanel
+              adaptationId={adaptation.id}
+              initialData={adaptation.falc_pictograms}
+              enabled
+            />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
@@ -78,7 +158,13 @@ function AdaptationMeta({
   return (
     <>
       <div className="flex flex-wrap items-center gap-2">
-        {adaptation.is_demo && <Badge variant="accent">Mode démo</Badge>}
+        {adaptation.is_demo && <Badge variant="outline">Mode démo</Badge>}
+        {adaptation.adaptation_level === "falc" && (
+          <Badge variant="accent">FALC</Badge>
+        )}
+        {adaptation.adaptation_level === "simplified" && (
+          <Badge variant="secondary">Simplifié</Badge>
+        )}
         {adaptation.profile_slugs.map((slug) => (
           <Badge key={slug}>{getProfileName(slug)}</Badge>
         ))}
@@ -102,46 +188,36 @@ function AdaptationMeta({
 function ResultCard({
   title,
   content,
+  onOpenSchema,
+  embeddedSchema,
+  schemaLoading,
+  appendSchemaIfMissing,
+  schemaEnabled,
+  readingMode,
 }: {
   title: string;
   content: string | null;
+  onOpenSchema?: () => void;
+  embeddedSchema?: MermaidGenerationResult | null;
+  schemaLoading?: boolean;
+  appendSchemaIfMissing?: boolean;
+  schemaEnabled?: boolean;
+  readingMode?: import("@/types/reading-mode").ReadingMode;
 }) {
   if (!content) return null;
   return (
     <Card>
       <CardHeader><CardTitle className="text-lg">{title}</CardTitle></CardHeader>
       <CardContent>
-        <div className="prose prose-base max-w-none whitespace-pre-wrap text-slate-700 break-words dark:text-slate-300">
-          {content}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function QuizSection({ adaptation }: { adaptation: Adaptation }) {
-  if (!adaptation.quiz?.questions?.length) {
-    return <p className="text-base text-slate-500">Aucun quiz disponible.</p>;
-  }
-  return (
-    <Card>
-      <CardHeader><CardTitle className="text-lg">Quiz</CardTitle></CardHeader>
-      <CardContent className="space-y-4">
-        {adaptation.quiz.questions.map((q, i) => (
-          <div key={i} className="rounded-lg border border-slate-200 p-4">
-            <p className="font-medium mb-2 text-base">{i + 1}. {q.question}</p>
-            <ul className="space-y-2">
-              {q.options.map((opt, j) => (
-                <li
-                  key={j}
-                  className={`text-base px-3 py-2 rounded min-h-[44px] flex items-center ${j === q.correct_index ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200" : "text-slate-600 bg-slate-50 dark:bg-slate-800 dark:text-slate-300"}`}
-                >
-                  {opt}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+        <AdaptationRenderer
+          content={content}
+          mode={readingMode}
+          onOpenSchema={onOpenSchema}
+          embeddedSchema={embeddedSchema}
+          schemaLoading={schemaLoading}
+          appendSchemaIfMissing={appendSchemaIfMissing}
+          schemaEnabled={schemaEnabled}
+        />
       </CardContent>
     </Card>
   );

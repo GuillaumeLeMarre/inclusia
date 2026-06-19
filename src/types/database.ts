@@ -173,6 +173,11 @@ export interface Database {
           document_id: string;
           profile_slugs: Json;
           status: AdaptationStatus;
+          adaptation_level: string;
+          falc_score: number | null;
+          falc_content: string | null;
+          generate_pictograms: boolean;
+          falc_pictograms: Json | null;
           adapted_content: string | null;
           summary: string | null;
           memory_sheet: string | null;
@@ -196,6 +201,11 @@ export interface Database {
           document_id: string;
           profile_slugs?: Json;
           status?: AdaptationStatus;
+          adaptation_level?: string;
+          falc_score?: number | null;
+          falc_content?: string | null;
+          generate_pictograms?: boolean;
+          falc_pictograms?: Json | null;
           adapted_content?: string | null;
           summary?: string | null;
           memory_sheet?: string | null;

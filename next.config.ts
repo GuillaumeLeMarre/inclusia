@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["pdf-parse"],
+  serverExternalPackages: ["pdf-parse", "sharp"],
   async redirects() {
     return [
       { source: "/students", destination: "/profiles", permanent: true },

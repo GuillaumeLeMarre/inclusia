@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/types/database";
+import type { FalcPictogramsData } from "@/types/falc";
 import type {
   Adaptation,
   KeywordItem,
@@ -15,6 +16,12 @@ export interface AdaptationResultInput {
   documentId: string;
   profileSlugs: string[];
   status: Adaptation["status"];
+  adaptationLevel: Adaptation["adaptation_level"];
+  falcScore?: number | null;
+  falcContent?: string | null;
+  generatePictograms?: boolean;
+  falcPictograms?: FalcPictogramsData | null;
+  mindmapMermaid?: string | null;
   adaptedContent: string;
   summary: string;
   memorySheet: string;
@@ -28,9 +35,21 @@ export interface AdaptationResultInput {
   isDemo: boolean;
 }
 
+function parseFalcPictograms(value: Json | null): FalcPictogramsData | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const data = value as unknown as FalcPictogramsData;
+  if (!Array.isArray(data.items)) return null;
+  return data;
+}
+
 function mapAdaptation(row: Database["public"]["Tables"]["adaptations"]["Row"]): Adaptation {
   return {
     ...row,
+    adaptation_level: (row.adaptation_level ?? "standard") as Adaptation["adaptation_level"],
+    falc_score: row.falc_score ?? null,
+    falc_content: row.falc_content ?? null,
+    generate_pictograms: row.generate_pictograms ?? false,
+    falc_pictograms: parseFalcPictograms(row.falc_pictograms),
     profile_slugs: Array.isArray(row.profile_slugs) ? (row.profile_slugs as string[]) : [],
     quiz: row.quiz as QuizData | null,
     keywords: row.keywords as KeywordItem[] | null,
@@ -81,6 +100,12 @@ export async function createAdaptation(client: Client, input: AdaptationResultIn
       document_id: input.documentId,
       profile_slugs: input.profileSlugs,
       status: input.status,
+      adaptation_level: input.adaptationLevel,
+      falc_score: input.falcScore ?? null,
+      falc_content: input.falcContent ?? null,
+      generate_pictograms: input.generatePictograms ?? false,
+      falc_pictograms: (input.falcPictograms ?? null) as unknown as Json,
+      mindmap_mermaid: input.mindmapMermaid ?? null,
       adapted_content: input.adaptedContent,
       summary: input.summary,
       memory_sheet: input.memorySheet,
@@ -116,4 +141,44 @@ export async function updateMindmapMermaid(
 
   if (error) throw error;
   return data.mindmap_mermaid;
+}
+
+export async function updateFalcFields(
+  client: Client,
+  teacherId: string,
+  adaptationId: string,
+  fields: {
+    falc_content?: string;
+    falc_score?: number;
+    adaptation_level?: Adaptation["adaptation_level"];
+  },
+) {
+  const { data, error } = await client
+    .from("adaptations")
+    .update(fields)
+    .eq("id", adaptationId)
+    .eq("teacher_id", teacherId)
+    .select("falc_content, falc_score, adaptation_level")
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function updateFalcPictograms(
+  client: Client,
+  teacherId: string,
+  adaptationId: string,
+  pictograms: FalcPictogramsData,
+) {
+  const { data, error } = await client
+    .from("adaptations")
+    .update({ falc_pictograms: pictograms as unknown as Json })
+    .eq("id", adaptationId)
+    .eq("teacher_id", teacherId)
+    .select("falc_pictograms")
+    .single();
+
+  if (error) throw error;
+  return parseFalcPictograms(data.falc_pictograms);
 }

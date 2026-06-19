@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ADAPTATION_PROFILES, getProfileName } from "@/lib/constants/profiles";
+import { AdaptationLevelSelector } from "@/features/falc/components/adaptation-level-selector";
 import { cn } from "@/lib/utils";
+import type { AdaptationLevel } from "@/types/adaptation-level";
 import type { Document, LearnerProfile } from "@/types";
 
 const SELECT_CLASS =
@@ -23,6 +25,8 @@ export function AdaptationWizard({ profiles, documents }: AdaptationWizardProps)
   const [profileId, setProfileId] = useState("");
   const [documentId, setDocumentId] = useState("");
   const [adaptationSlugs, setAdaptationSlugs] = useState<string[]>([]);
+  const [adaptationLevel, setAdaptationLevel] = useState<AdaptationLevel>("standard");
+  const [generatePictograms, setGeneratePictograms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -52,7 +56,13 @@ export function AdaptationWizard({ profiles, documents }: AdaptationWizardProps)
       const res = await fetch("/api/adapt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ profileId, documentId, profileSlugs: adaptationSlugs }),
+        body: JSON.stringify({
+          profileId,
+          documentId,
+          profileSlugs: adaptationSlugs,
+          adaptationLevel,
+          generatePictograms,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Adaptation échouée");
@@ -160,6 +170,27 @@ export function AdaptationWizard({ profiles, documents }: AdaptationWizardProps)
               ))}
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle className="text-lg">4. Niveau et options</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <AdaptationLevelSelector value={adaptationLevel} onChange={setAdaptationLevel} />
+          <label className="flex min-h-[44px] cursor-pointer items-center gap-3 rounded-lg border border-slate-200 p-4 dark:border-slate-700">
+            <input
+              type="checkbox"
+              checked={generatePictograms}
+              onChange={(e) => setGeneratePictograms(e.target.checked)}
+              className="h-4 w-4 accent-primary"
+            />
+            <span className="text-base text-slate-700 dark:text-slate-300">
+              Générer des pictogrammes
+              <span className="block text-sm text-slate-500">
+                Illustrations ARASAAC pour les concepts clés
+              </span>
+            </span>
+          </label>
         </CardContent>
       </Card>
 

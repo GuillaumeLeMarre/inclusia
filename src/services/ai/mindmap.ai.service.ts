@@ -1,51 +1,65 @@
-import { MERMAID_SYSTEM_PROMPT } from "@/prompts/mindmap/mindmap.prompt";
-import {
-  detectDiagramType,
-  isValidMermaidStructure,
-  sanitizeMermaidCode,
-} from "@/lib/mermaid/mermaid-utils";
+import { MERMAID_SYSTEM_PROMPT, MERMAID_FALC_SYSTEM_APPEND, buildMindmapUserPrompt } from "@/prompts/mindmap/mindmap.prompt";
+import { parseMermaidAiResponse } from "@/lib/mermaid/parse-mermaid-response";
+import { inferDiagramTypeFromText } from "@/lib/mermaid/infer-diagram-type";
+import { reconcileDiagramType } from "@/lib/mermaid/mermaid-utils";
 import { generateDemoMermaid } from "@/services/mindmap/demo-mermaid.service";
 import { getOpenAIClient, getOpenAIModel } from "@/services/ai/openai.client";
+import type { MermaidGenerationResult } from "@/types/mindmap";
 
-export interface MermaidGenerationResult {
-  diagramType: string;
-  mermaidCode: string;
+export type { MermaidGenerationResult };
+
+const MAX_OUTPUT_TOKENS = 650;
+
+function getMindmapModel(): string {
+  return process.env.OPENAI_MINDMAP_MODEL ?? getOpenAIModel();
 }
 
 export async function generateMermaidFromCourse(
   courseText: string,
+  options?: { falcMode?: boolean },
 ): Promise<MermaidGenerationResult> {
-  const text = courseText.trim().slice(0, 8000);
+  const text = courseText.trim().slice(0, 2400);
   if (!text) {
     throw new Error("Contenu du cours insuffisant pour générer un schéma.");
   }
 
+  const falcMode = options?.falcMode ?? false;
   const openai = getOpenAIClient();
   if (!openai) {
     return generateDemoMermaid(text);
   }
 
+  const suggestedType = inferDiagramTypeFromText(text);
+  const systemPrompt = falcMode
+    ? MERMAID_SYSTEM_PROMPT + MERMAID_FALC_SYSTEM_APPEND
+    : MERMAID_SYSTEM_PROMPT;
+
   try {
     const response = await openai.chat.completions.create({
-      model: getOpenAIModel(),
+      model: getMindmapModel(),
       messages: [
-        { role: "system", content: MERMAID_SYSTEM_PROMPT },
-        { role: "user", content: text },
+        { role: "system", content: systemPrompt },
+        {
+          role: "user",
+          content: buildMindmapUserPrompt(text, suggestedType, { falcMode }),
+        },
       ],
-      temperature: 0.3,
+      response_format: { type: "json_object" },
+      temperature: 0.2,
+      max_tokens: MAX_OUTPUT_TOKENS,
     });
 
     const raw = response.choices[0]?.message?.content ?? "";
-    const mermaidCode = sanitizeMermaidCode(raw);
+    const parsed = parseMermaidAiResponse(raw);
 
-    if (!isValidMermaidStructure(mermaidCode)) {
-      throw new Error("Réponse IA : diagramme Mermaid invalide.");
+    if (parsed) {
+      return {
+        ...parsed,
+        diagramType: reconcileDiagramType(parsed.diagramType, parsed.mermaidCode),
+      };
     }
 
-    return {
-      diagramType: detectDiagramType(mermaidCode),
-      mermaidCode,
-    };
+    return generateDemoMermaid(text);
   } catch {
     return generateDemoMermaid(text);
   }

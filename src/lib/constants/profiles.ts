@@ -11,6 +11,7 @@ export const ADAPTATION_PROFILES = [
   { slug: "allophone", name: "Élève allophone", category: "language" },
   { slug: "difficultes_apprentissage", name: "Difficultés d'apprentissage", category: "learning" },
   { slug: "hpi", name: "HPI", category: "gifted" },
+  { slug: "falc", name: "FALC", category: "accessibility" },
   { slug: "personnalise", name: "Profil personnalisé", category: "custom" },
 ] as const;
 

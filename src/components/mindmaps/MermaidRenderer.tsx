@@ -4,12 +4,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Loader2, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { fixTimelineAxisPosition, isTimelineDiagram } from "@/lib/mermaid/fix-timeline-layout";
 
 interface MermaidRendererProps {
   code: string;
   className?: string;
   /** Ne rendre que lorsque le conteneur est visible (onglet actif). */
   enabled?: boolean;
+  /** Masque le spinner interne (ex. régénération gérée par le parent). */
+  suppressLoadingOverlay?: boolean;
 }
 
 const ERROR_MESSAGE = "Impossible de générer le schéma.";
@@ -23,6 +26,7 @@ export function MermaidRenderer({
   code,
   className,
   enabled = true,
+  suppressLoadingOverlay = false,
 }: MermaidRendererProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const renderCounter = useRef(0);
@@ -55,6 +59,9 @@ export function MermaidRenderer({
       containerRef.current.innerHTML = svg;
       const svgEl = containerRef.current.querySelector("svg");
       if (svgEl) {
+        if (isTimelineDiagram(code)) {
+          fixTimelineAxisPosition(svgEl);
+        }
         svgEl.removeAttribute("height");
         svgEl.style.width = "100%";
         svgEl.style.maxWidth = "100%";
@@ -138,7 +145,7 @@ export function MermaidRenderer({
         className="relative w-full overflow-auto rounded-xl border border-slate-200 bg-white p-4 touch-pan-x touch-pan-y dark:bg-slate-900 dark:border-slate-700"
         style={{ maxHeight: "70vh", minHeight: "220px" }}
       >
-        {status === "loading" && (
+        {status === "loading" && !suppressLoadingOverlay && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-slate-900/80 z-10">
             <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden />
             <span className="sr-only">Chargement du schéma…</span>
