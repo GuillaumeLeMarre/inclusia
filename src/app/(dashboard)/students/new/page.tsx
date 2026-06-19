@@ -1,4 +1,5 @@
 import { AppHeader } from "@/components/layout/app-header";
+import { PageContainer } from "@/components/layout/page-container";
 import { StudentForm } from "@/features/students/components/student-form";
 
 export default function NewStudentPage() {
@@ -8,9 +9,9 @@ export default function NewStudentPage() {
         title="Nouvel élève"
         description="Créez une fiche élève avec profils et préférences"
       />
-      <div className="p-8">
+      <PageContainer>
         <StudentForm />
-      </div>
+      </PageContainer>
     </>
   );
 }

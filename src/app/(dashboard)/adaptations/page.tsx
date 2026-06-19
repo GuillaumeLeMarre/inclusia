@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { AppHeader } from "@/components/layout/app-header";
+import { PageContainer } from "@/components/layout/page-container";
 import {
   AdaptationList,
   NewAdaptationButton,
@@ -16,9 +16,9 @@ export default async function AdaptationsPage() {
         description={`${items.length} adaptation${items.length > 1 ? "s" : ""} générée${items.length > 1 ? "s" : ""}`}
         action={<NewAdaptationButton />}
       />
-      <div className="p-8">
+      <PageContainer>
         <AdaptationList items={items} />
-      </div>
+      </PageContainer>
     </>
   );
 }

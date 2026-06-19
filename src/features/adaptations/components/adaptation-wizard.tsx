@@ -10,6 +10,9 @@ import { ADAPTATION_PROFILES, getProfileName } from "@/lib/constants/profiles";
 import { cn } from "@/lib/utils";
 import type { Document, Student } from "@/types";
 
+const SELECT_CLASS =
+  "w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30";
+
 interface AdaptationWizardProps {
   students: Student[];
   documents: Document[];
@@ -62,20 +65,21 @@ export function AdaptationWizard({ students, documents }: AdaptationWizardProps)
   }
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="w-full max-w-3xl space-y-4 md:space-y-6">
       {error && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+        <p className="rounded-lg bg-red-50 px-3 py-2 text-base text-red-600">{error}</p>
       )}
 
       <Card>
-        <CardHeader><CardTitle>1. Choisir un élève</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-lg">1. Choisir un élève</CardTitle></CardHeader>
         <CardContent>
           {students.length === 0 ? (
-            <p className="text-sm text-slate-500">Aucun élève. <a href="/students/new" className="text-primary underline">Créer un élève</a></p>
+            <p className="text-base text-slate-500">Aucun élève. <a href="/students/new" className="text-primary underline">Créer un élève</a></p>
           ) : (
             <select
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              className={SELECT_CLASS}
               value={studentId}
+              aria-label="Sélectionner un élève"
               onChange={(e) => {
                 setStudentId(e.target.value);
                 setProfiles([]);
@@ -93,14 +97,15 @@ export function AdaptationWizard({ students, documents }: AdaptationWizardProps)
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>2. Choisir un document</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-lg">2. Choisir un document</CardTitle></CardHeader>
         <CardContent>
           {documents.length === 0 ? (
-            <p className="text-sm text-slate-500">Aucun document. <a href="/documents" className="text-primary underline">Importer un document</a></p>
+            <p className="text-base text-slate-500">Aucun document. <a href="/documents" className="text-primary underline">Importer un document</a></p>
           ) : (
             <select
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+              className={SELECT_CLASS}
               value={documentId}
+              aria-label="Sélectionner un document"
               onChange={(e) => setDocumentId(e.target.value)}
             >
               <option value="">Sélectionner...</option>
@@ -114,10 +119,10 @@ export function AdaptationWizard({ students, documents }: AdaptationWizardProps)
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            3. Profils d&apos;adaptation
+          <CardTitle className="text-lg flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <span>3. Profils d&apos;adaptation</span>
             {selectedStudent && (
-              <Button type="button" variant="ghost" size="sm" onClick={selectStudentProfiles}>
+              <Button type="button" variant="ghost" size="sm" onClick={selectStudentProfiles} className="w-full sm:w-auto">
                 Profils de l&apos;élève
               </Button>
             )}
@@ -131,7 +136,7 @@ export function AdaptationWizard({ students, documents }: AdaptationWizardProps)
                 type="button"
                 onClick={() => toggleProfile(slug)}
                 className={cn(
-                  "rounded-full px-3 py-1.5 text-sm font-medium border transition-colors",
+                  "rounded-full px-3 py-2 min-h-[44px] text-base font-medium border transition-colors",
                   profiles.includes(slug)
                     ? "bg-primary text-white border-primary"
                     : "bg-white text-slate-600 border-slate-200 hover:border-primary/50",

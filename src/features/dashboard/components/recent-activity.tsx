@@ -17,25 +17,27 @@ export function RecentActivityList({ activities }: RecentActivityListProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Activité récente</CardTitle>
+        <CardTitle className="text-lg">Activité récente</CardTitle>
       </CardHeader>
       <CardContent>
         {activities.length === 0 ? (
-          <p className="text-sm text-slate-500">Aucune activité récente.</p>
+          <p className="text-base text-slate-500">Aucune activité récente.</p>
         ) : (
           <ul className="space-y-4">
             {activities.map((activity) => {
               const Icon = ICONS[activity.type];
               return (
-                <li key={activity.id} className="flex items-start gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100">
-                    <Icon className="h-4 w-4 text-slate-600" />
+                <li key={activity.id} className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-3">
+                  <div className="flex items-start gap-3 min-w-0 flex-1">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100">
+                      <Icon className="h-5 w-5 text-slate-600" aria-hidden />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-base font-medium text-foreground">{activity.title}</p>
+                      <p className="text-base text-slate-500 break-words">{activity.description}</p>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground">{activity.title}</p>
-                    <p className="text-sm text-slate-500 truncate">{activity.description}</p>
-                  </div>
-                  <span className="text-xs text-slate-400 shrink-0">
+                  <span className="text-base text-slate-500 sm:text-slate-400 shrink-0 pl-13 sm:pl-0">
                     {formatDate(activity.created_at)}
                   </span>
                 </li>

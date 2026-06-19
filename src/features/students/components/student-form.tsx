@@ -115,7 +115,7 @@ export function StudentForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
+    <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-2xl">
       {errors && (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{errors}</p>
       )}
@@ -124,7 +124,7 @@ export function StudentForm() {
         <CardHeader>
           <CardTitle>Informations</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2">
+        <CardContent className="grid gap-4 grid-cols-1 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="firstName">Prénom *</Label>
             <Input
@@ -174,7 +174,7 @@ export function StudentForm() {
                 type="button"
                 onClick={() => toggleProfile(slug)}
                 className={cn(
-                  "rounded-full px-3 py-1.5 text-sm font-medium border transition-colors",
+                  "rounded-full px-3 py-2 min-h-[44px] text-base font-medium border transition-colors",
                   form.profiles.includes(slug)
                     ? "bg-primary text-white border-primary"
                     : "bg-white text-slate-600 border-slate-200 hover:border-primary/50",
@@ -218,7 +218,7 @@ export function StudentForm() {
         </CardHeader>
         <CardContent className="space-y-4">
           <textarea
-            className="flex min-h-[80px] w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+            className="flex min-h-[120px] w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
             placeholder="Décrivez les besoins spécifiques de l'élève..."
             value={form.needs}
             onChange={(e) => setForm({ ...form, needs: e.target.value })}
@@ -226,11 +226,11 @@ export function StudentForm() {
         </CardContent>
       </Card>
 
-      <div className="flex gap-3">
-        <Button type="submit" disabled={loading}>
+      <div className="flex flex-col sm:flex-row gap-3">
+        <Button type="submit" disabled={loading} className="w-full sm:w-auto">
           {loading ? "Création..." : "Créer l'élève"}
         </Button>
-        <Button type="button" variant="outline" onClick={() => router.back()}>
+        <Button type="button" variant="outline" onClick={() => router.back()} className="w-full sm:w-auto">
           Annuler
         </Button>
       </div>

@@ -36,7 +36,7 @@ const STAT_CONFIG = [
 
 export function StatsCards({ stats }: StatsCardsProps) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
       {STAT_CONFIG.map(({ key, label, icon: Icon, color, format }) => (
         <Card key={key}>
           <CardContent className="flex items-center gap-4 p-6">
@@ -44,7 +44,7 @@ export function StatsCards({ stats }: StatsCardsProps) {
               <Icon className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm text-slate-500">{label}</p>
+              <p className="text-base text-slate-500">{label}</p>
               <p className="text-2xl font-bold text-foreground">
                 {format ? format(stats[key]) : stats[key]}
               </p>

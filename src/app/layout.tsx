@@ -17,6 +17,12 @@ export const metadata: Metadata = {
   description: "Plateforme SaaS d'adaptation pédagogique inclusive pour enseignants",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover" as const,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{

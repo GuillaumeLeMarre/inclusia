@@ -1,4 +1,5 @@
 import { AppHeader } from "@/components/layout/app-header";
+import { PageContainer } from "@/components/layout/page-container";
 import { AdaptationWizard } from "@/features/adaptations/components/adaptation-wizard";
 import { getDocuments } from "@/services/dashboard.service";
 import { findStudentsByTeacher } from "@/repositories/students.repository";
@@ -25,9 +26,9 @@ export default async function NewAdaptationPage() {
         title="Nouvelle adaptation"
         description="Sélectionnez un élève, un document et les profils à appliquer"
       />
-      <div className="p-8">
+      <PageContainer>
         <AdaptationWizard students={students} documents={documents} />
-      </div>
+      </PageContainer>
     </>
   );
 }

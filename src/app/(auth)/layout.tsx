@@ -22,11 +22,11 @@ export default function AuthLayout({
           Dyslexie · TDAH · TSA · Allophones · et plus encore
         </p>
       </div>
-      <div className="flex flex-1 flex-col items-center justify-center p-8 bg-background">
-        <div className="mb-8 lg:hidden">
+      <div className="flex flex-1 flex-col items-center justify-center p-4 sm:p-6 md:p-8 bg-background pb-[env(safe-area-inset-bottom)]">
+        <div className="mb-6 lg:mb-8 w-full max-w-md">
           <Logo showSlogan />
         </div>
-        {children}
+        <div className="w-full max-w-md">{children}</div>
       </div>
     </div>
   );

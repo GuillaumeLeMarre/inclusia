@@ -55,23 +55,23 @@ export function DocumentUploadForm({ onSuccess }: DocumentUploadFormProps) {
 
   return (
     <Card>
-      <CardContent className="p-6 space-y-4">
+      <CardContent className="p-4 md:p-6 space-y-4">
         <div
           onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
           onDragLeave={() => setDragging(false)}
           onDrop={handleDrop}
           className={cn(
-            "flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-12 transition-colors",
+            "flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 md:p-12 transition-colors",
             dragging ? "border-primary bg-primary/5" : "border-slate-200",
             !isValid && "border-red-300 bg-red-50",
           )}
         >
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
-            <Upload className="h-7 w-7 text-primary" />
+            <Upload className="h-7 w-7 text-primary" aria-hidden />
           </div>
-          <p className="mt-4 text-sm font-medium">Glissez-déposez votre document ici</p>
-          <p className="mt-1 text-xs text-slate-500">PDF, DOCX ou TXT — max 20 Mo</p>
-          <label className="mt-4">
+          <p className="mt-4 text-base font-medium text-center">Glissez-déposez votre document ici</p>
+          <p className="mt-1 text-base text-slate-500 text-center">PDF, DOCX ou TXT — max 20 Mo</p>
+          <label className="mt-4 w-full sm:w-auto">
             <input
               type="file"
               className="hidden"
@@ -81,23 +81,25 @@ export function DocumentUploadForm({ onSuccess }: DocumentUploadFormProps) {
                 if (selected) handleFile(selected);
               }}
             />
-            <Button type="button" variant="outline" asChild disabled={loading}>
+            <Button type="button" variant="outline" asChild disabled={loading} className="w-full sm:w-auto">
               <span>Parcourir les fichiers</span>
             </Button>
           </label>
         </div>
 
         {file && (
-          <div className="flex items-center gap-3 rounded-lg bg-slate-50 p-4">
-            <FileText className="h-5 w-5 text-primary shrink-0" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{file.name}</p>
-              <p className="text-xs text-slate-500">{(file.size / 1024).toFixed(1)} Ko</p>
+          <div className="flex flex-col gap-3 rounded-lg bg-slate-50 p-4 sm:flex-row sm:items-center">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <FileText className="h-5 w-5 text-primary shrink-0" aria-hidden />
+              <div className="min-w-0 flex-1">
+                <p className="text-base font-medium truncate">{file.name}</p>
+                <p className="text-base text-slate-500">{(file.size / 1024).toFixed(1)} Ko</p>
+              </div>
             </div>
             <Button
               onClick={() => upload(file)}
               disabled={loading || !isValid}
-              size="sm"
+              className="w-full sm:w-auto shrink-0"
             >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Importer"}
             </Button>
@@ -105,7 +107,7 @@ export function DocumentUploadForm({ onSuccess }: DocumentUploadFormProps) {
         )}
 
         {error && (
-          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+          <p className="rounded-lg bg-red-50 px-3 py-2 text-base text-red-600">{error}</p>
         )}
       </CardContent>
     </Card>

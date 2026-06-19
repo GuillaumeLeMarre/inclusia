@@ -145,11 +145,11 @@ export function LoginForm() {
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Connexion..." : "Se connecter"}
           </Button>
-          <div className="flex justify-between text-sm">
-            <Link href="/forgot-password" className="text-primary hover:underline">
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-between text-base">
+            <Link href="/forgot-password" className="text-primary hover:underline min-h-[44px] flex items-center">
               Mot de passe oublié ?
             </Link>
-            <Link href="/register" className="text-primary hover:underline">
+            <Link href="/register" className="text-primary hover:underline min-h-[44px] flex items-center">
               Créer un compte
             </Link>
           </div>
