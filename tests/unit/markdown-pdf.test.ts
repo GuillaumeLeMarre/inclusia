@@ -35,6 +35,29 @@ Paragraphe avec **gras**.
   it("parse les listes numérotées", () => {
     const blocks = parseMarkdownBlocks("1. Un\n2. Deux");
     assert.equal(blocks[0]?.type, "ol");
+    if (blocks[0]?.type === "ol") {
+      assert.equal(blocks[0].items.length, 2);
+      assert.equal(blocks[0].items[0]?.number, 1);
+      assert.equal(blocks[0].items[1]?.number, 2);
+    }
+  });
+
+  it("regroupe les listes numérotées séparées par une ligne vide", () => {
+    const blocks = parseMarkdownBlocks("1. Un\n\n2. Deux\n\n3. Trois");
+    assert.equal(blocks.length, 1);
+    assert.equal(blocks[0]?.type, "ol");
+    if (blocks[0]?.type === "ol") {
+      assert.equal(blocks[0].items.length, 3);
+      assert.equal(blocks[0].items[2]?.number, 3);
+    }
+  });
+
+  it("accepte le format 1) pour les listes numérotées", () => {
+    const blocks = parseMarkdownBlocks("1) Un\n2) Deux");
+    assert.equal(blocks[0]?.type, "ol");
+    if (blocks[0]?.type === "ol") {
+      assert.equal(blocks[0].items[1]?.number, 2);
+    }
   });
 });
 

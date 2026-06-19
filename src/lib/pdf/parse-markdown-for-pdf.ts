@@ -7,11 +7,16 @@ export interface InlineSpan {
   code?: boolean;
 }
 
+export interface OrderedListItem {
+  number: number;
+  spans: InlineSpan[];
+}
+
 export type MarkdownBlock =
   | { type: "heading"; level: 1 | 2 | 3 | 4 | 5 | 6; spans: InlineSpan[] }
   | { type: "paragraph"; spans: InlineSpan[] }
   | { type: "ul"; items: InlineSpan[][] }
-  | { type: "ol"; items: InlineSpan[][] }
+  | { type: "ol"; items: OrderedListItem[] }
   | { type: "blockquote"; spans: InlineSpan[] }
   | { type: "hr" }
   | { type: "schema"; label: string };
@@ -74,11 +79,75 @@ function isHr(line: string): boolean {
   return /^(\*{3,}|-{3,}|_{3,})$/.test(line.trim());
 }
 
-function parseListItem(line: string, ordered: boolean): InlineSpan[] | null {
-  const pattern = ordered ? /^\d+\.\s+(.+)$/ : /^[-*+]\s+(.+)$/;
-  const match = line.match(pattern);
+function parseUnorderedListItem(line: string): InlineSpan[] | null {
+  const match = line.match(/^[-*+]\s+(.+)$/);
   if (!match) return null;
   return parseInlineMarkdown(match[1]!);
+}
+
+function parseOrderedListItem(line: string): OrderedListItem | null {
+  const match = line.match(/^(\d+)[.)]\s+(.+)$/);
+  if (!match) return null;
+  return {
+    number: Number.parseInt(match[1]!, 10),
+    spans: parseInlineMarkdown(match[2]!),
+  };
+}
+
+function collectOrderedListItems(lines: string[], startIndex: number): {
+  items: OrderedListItem[];
+  nextIndex: number;
+} {
+  const items: OrderedListItem[] = [];
+  let i = startIndex;
+
+  while (i < lines.length) {
+    const trimmed = lines[i]!.trim();
+    if (!trimmed) {
+      let j = i + 1;
+      while (j < lines.length && !lines[j]!.trim()) j += 1;
+      if (j < lines.length && parseOrderedListItem(lines[j]!.trim())) {
+        i = j;
+        continue;
+      }
+      break;
+    }
+
+    const item = parseOrderedListItem(trimmed);
+    if (!item) break;
+    items.push(item);
+    i += 1;
+  }
+
+  return { items, nextIndex: i };
+}
+
+function collectUnorderedListItems(lines: string[], startIndex: number): {
+  items: InlineSpan[][];
+  nextIndex: number;
+} {
+  const items: InlineSpan[][] = [];
+  let i = startIndex;
+
+  while (i < lines.length) {
+    const trimmed = lines[i]!.trim();
+    if (!trimmed) {
+      let j = i + 1;
+      while (j < lines.length && !lines[j]!.trim()) j += 1;
+      if (j < lines.length && parseUnorderedListItem(lines[j]!.trim())) {
+        i = j;
+        continue;
+      }
+      break;
+    }
+
+    const item = parseUnorderedListItem(trimmed);
+    if (!item) break;
+    items.push(item);
+    i += 1;
+  }
+
+  return { items, nextIndex: i };
 }
 
 export function parseMarkdownBlocks(raw: string): MarkdownBlock[] {
@@ -128,31 +197,19 @@ export function parseMarkdownBlocks(raw: string): MarkdownBlock[] {
       continue;
     }
 
-    const ulItem = parseListItem(trimmed, false);
+    const ulItem = parseUnorderedListItem(trimmed);
     if (ulItem) {
-      const items: InlineSpan[][] = [ulItem];
-      i += 1;
-      while (i < lines.length) {
-        const next = parseListItem(lines[i]!.trim(), false);
-        if (!next) break;
-        items.push(next);
-        i += 1;
-      }
-      blocks.push({ type: "ul", items });
+      const collected = collectUnorderedListItems(lines, i);
+      blocks.push({ type: "ul", items: collected.items });
+      i = collected.nextIndex;
       continue;
     }
 
-    const olItem = parseListItem(trimmed, true);
+    const olItem = parseOrderedListItem(trimmed);
     if (olItem) {
-      const items: InlineSpan[][] = [olItem];
-      i += 1;
-      while (i < lines.length) {
-        const next = parseListItem(lines[i]!.trim(), true);
-        if (!next) break;
-        items.push(next);
-        i += 1;
-      }
-      blocks.push({ type: "ol", items });
+      const collected = collectOrderedListItems(lines, i);
+      blocks.push({ type: "ol", items: collected.items });
+      i = collected.nextIndex;
       continue;
     }
 
@@ -172,8 +229,8 @@ export function parseMarkdownBlocks(raw: string): MarkdownBlock[] {
         || isHr(next)
         || /^(#{1,6})\s/.test(next)
         || next.startsWith(">")
-        || parseListItem(next, false)
-        || parseListItem(next, true)
+        || parseUnorderedListItem(next)
+        || parseOrderedListItem(next)
         || /^!\[/.test(next)
       ) {
         break;

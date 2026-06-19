@@ -1,5 +1,5 @@
 import type { jsPDF } from "jspdf";
-import type { InlineSpan, MarkdownBlock } from "@/lib/pdf/parse-markdown-for-pdf";
+import type { InlineSpan, MarkdownBlock, OrderedListItem } from "@/lib/pdf/parse-markdown-for-pdf";
 import type { SchemaPdfAsset } from "@/lib/pdf/schema-pdf-image";
 
 export interface MarkdownPdfTheme {
@@ -95,15 +95,45 @@ function renderHeading(ctx: RenderContext, block: Extract<MarkdownBlock, { type:
   ctx.y += gap.after - size * 0.25;
 }
 
-function renderList(ctx: RenderContext, items: InlineSpan[][], ordered: boolean): void {
+function orderedListMarkerNumber(
+  item: OrderedListItem,
+  index: number,
+  items: OrderedListItem[],
+): number {
+  if (items.every((entry) => entry.number === 1)) return index + 1;
+
+  const sequentialFromOne = items.every((entry, idx) => entry.number === idx + 1);
+  if (items[0]?.number === 1 && sequentialFromOne) return index + 1;
+
+  return item.number;
+}
+
+function renderUnorderedList(ctx: RenderContext, items: InlineSpan[][]): void {
+  const bulletWidth = ctx.theme.listIndent;
+  items.forEach((item) => {
+    ensureSpace(ctx, ctx.theme.bodyLineHeight);
+    ctx.doc.setFont("helvetica", "normal");
+    ctx.doc.setFontSize(ctx.theme.bodySize);
+    ctx.doc.text("•", ctx.x, ctx.y);
+    renderSpans(ctx, item, {
+      fontSize: ctx.theme.bodySize,
+      lineHeight: ctx.theme.bodyLineHeight,
+      indent: bulletWidth,
+      maxWidth: ctx.theme.maxWidth - bulletWidth,
+    });
+    ctx.y += ctx.theme.paragraphGap * 0.35;
+  });
+}
+
+function renderOrderedList(ctx: RenderContext, items: OrderedListItem[]): void {
   const bulletWidth = ctx.theme.listIndent;
   items.forEach((item, index) => {
     ensureSpace(ctx, ctx.theme.bodyLineHeight);
     ctx.doc.setFont("helvetica", "normal");
     ctx.doc.setFontSize(ctx.theme.bodySize);
-    const marker = ordered ? `${index + 1}.` : "•";
+    const marker = `${orderedListMarkerNumber(item, index, items)}.`;
     ctx.doc.text(marker, ctx.x, ctx.y);
-    renderSpans(ctx, item, {
+    renderSpans(ctx, item.spans, {
       fontSize: ctx.theme.bodySize,
       lineHeight: ctx.theme.bodyLineHeight,
       indent: bulletWidth,
@@ -185,11 +215,11 @@ export function renderMarkdownBlocksToPdf(
         ctx.y += ctx.theme.paragraphGap * 0.5;
         break;
       case "ul":
-        renderList(ctx, block.items, false);
+        renderUnorderedList(ctx, block.items);
         ctx.y += ctx.theme.paragraphGap * 0.35;
         break;
       case "ol":
-        renderList(ctx, block.items, true);
+        renderOrderedList(ctx, block.items);
         ctx.y += ctx.theme.paragraphGap * 0.35;
         break;
       case "blockquote":
