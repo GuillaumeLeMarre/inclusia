@@ -33,6 +33,9 @@ export interface AdaptationResultInput {
   audioScript: string;
   processingTimeMs: number;
   isDemo: boolean;
+  pedagogicalProfileId?: string | null;
+  teacherProfileId?: string | null;
+  profileSource?: import("@/types/pedagogical-profile").ProfileSource | null;
 }
 
 function parseFalcPictograms(value: Json | null): FalcPictogramsData | null {
@@ -117,6 +120,9 @@ export async function createAdaptation(client: Client, input: AdaptationResultIn
       audio_script: input.audioScript,
       processing_time_ms: input.processingTimeMs,
       is_demo: input.isDemo,
+      pedagogical_profile_id: input.pedagogicalProfileId ?? null,
+      teacher_profile_id: input.teacherProfileId ?? null,
+      profile_source: input.profileSource ?? null,
     })
     .select("*")
     .single();

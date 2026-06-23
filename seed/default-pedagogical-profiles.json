@@ -1,0 +1,230 @@
+[
+  {
+    "slug": "dyslexie",
+    "name": "Dyslexie",
+    "category": "learning",
+    "description": "Profil pour les besoins d'adaptation liés à la dyslexie : lecture, décodage et compréhension écrite.",
+    "system_prompt": "Tu adaptes le contenu pour un profil dyslexie. Privilégie la clarté visuelle et la lisibilité.",
+    "user_prompt": "Applique les règles dyslexie ci-dessous au document source.",
+    "pedagogical_rules": "Phrases courtes. Espacement aéré. Mots difficiles en gras. Évite les homophones. Ajoute des repères visuels.",
+    "adaptation_level": "standard",
+    "options": {
+      "generate_summary": true,
+      "generate_quiz": true,
+      "generate_mindmap": true,
+      "generate_audio": true,
+      "generate_falc": false
+    },
+    "is_active": true,
+    "sort_order": 1
+  },
+  {
+    "slug": "dysorthographie",
+    "name": "Dysorthographie",
+    "category": "learning",
+    "description": "Profil pour les besoins d'adaptation liés à la dysorthographie.",
+    "system_prompt": "Tu adaptes le contenu pour un profil dysorthographie.",
+    "user_prompt": "Applique les règles dysorthographie ci-dessous.",
+    "pedagogical_rules": "Vocabulaire simplifié. Listes structurées. Rappels orthographiques pour mots clés.",
+    "adaptation_level": "standard",
+    "options": {
+      "generate_summary": true,
+      "generate_quiz": true,
+      "generate_mindmap": true,
+      "generate_audio": false,
+      "generate_falc": false
+    },
+    "is_active": true,
+    "sort_order": 2
+  },
+  {
+    "slug": "dyspraxie",
+    "name": "Dyspraxie",
+    "category": "motor",
+    "description": "Profil pour les besoins d'adaptation liés à la dyspraxie.",
+    "system_prompt": "Tu adaptes le contenu pour un profil dyspraxie.",
+    "user_prompt": "Applique les règles dyspraxie ci-dessous.",
+    "pedagogical_rules": "Consignes courtes numérotées. Une action par étape. Moins de copie, plus de compréhension.",
+    "adaptation_level": "standard",
+    "options": {
+      "generate_summary": true,
+      "generate_quiz": true,
+      "generate_mindmap": true,
+      "generate_audio": true,
+      "generate_falc": false
+    },
+    "is_active": true,
+    "sort_order": 3
+  },
+  {
+    "slug": "dysphasie",
+    "name": "Dysphasie",
+    "category": "language",
+    "description": "Profil pour les besoins d'adaptation liés à la dysphasie.",
+    "system_prompt": "Tu adaptes le contenu pour un profil dysphasie.",
+    "user_prompt": "Applique les règles dysphasie ci-dessous.",
+    "pedagogical_rules": "Vocabulaire concret. Phrases simples sujet-verbe-complément. Répétition des concepts clés.",
+    "adaptation_level": "standard",
+    "options": {
+      "generate_summary": true,
+      "generate_quiz": true,
+      "generate_mindmap": true,
+      "generate_audio": true,
+      "generate_falc": false
+    },
+    "is_active": true,
+    "sort_order": 4
+  },
+  {
+    "slug": "tdah",
+    "name": "TDAH",
+    "category": "attention",
+    "description": "Profil pour les besoins d'adaptation liés au TDAH.",
+    "system_prompt": "Tu adaptes le contenu pour un profil TDAH.",
+    "user_prompt": "Applique les règles TDAH ci-dessous.",
+    "pedagogical_rules": "Segments courts. Titres visibles. Une idée par paragraphe. Questions de relance régulières.",
+    "adaptation_level": "standard",
+    "options": {
+      "generate_summary": true,
+      "generate_quiz": true,
+      "generate_mindmap": true,
+      "generate_audio": true,
+      "generate_falc": false
+    },
+    "is_active": true,
+    "sort_order": 5
+  },
+  {
+    "slug": "tsa",
+    "name": "TSA",
+    "category": "social",
+    "description": "Profil pour les besoins d'adaptation liés au TSA.",
+    "system_prompt": "Tu adaptes le contenu pour un profil TSA.",
+    "user_prompt": "Applique les règles TSA ci-dessous.",
+    "pedagogical_rules": "Structure prévisible. Consignes explicites. Évite le langage figuré. Annoncer le plan.",
+    "adaptation_level": "standard",
+    "options": {
+      "generate_summary": true,
+      "generate_quiz": true,
+      "generate_mindmap": true,
+      "generate_audio": false,
+      "generate_falc": false
+    },
+    "is_active": true,
+    "sort_order": 6
+  },
+  {
+    "slug": "falc",
+    "name": "FALC",
+    "category": "accessibility",
+    "description": "Profil FALC — Facile à Lire et à Comprendre.",
+    "system_prompt": "Tu adaptes le contenu en FALC strict.",
+    "user_prompt": "Produis une version FALC du document source.",
+    "pedagogical_rules": "FALC strict : max 12 mots par phrase, une idée par phrase, vocabulaire courant, listes, exemples concrets, voix active.",
+    "adaptation_level": "falc",
+    "options": {
+      "generate_summary": true,
+      "generate_quiz": true,
+      "generate_mindmap": true,
+      "generate_audio": true,
+      "generate_falc": true
+    },
+    "is_active": true,
+    "sort_order": 7
+  },
+  {
+    "slug": "handicap_moteur",
+    "name": "Handicap moteur",
+    "category": "motor",
+    "description": "Profil pour les besoins d'adaptation liés au handicap moteur.",
+    "system_prompt": "Tu adaptes le contenu pour un profil handicap moteur.",
+    "user_prompt": "Applique les règles handicap moteur ci-dessous.",
+    "pedagogical_rules": "Contenu accessible sans manipulation fine. Privilégier lecture et compréhension orale.",
+    "adaptation_level": "standard",
+    "options": {
+      "generate_summary": true,
+      "generate_quiz": true,
+      "generate_mindmap": true,
+      "generate_audio": true,
+      "generate_falc": false
+    },
+    "is_active": true,
+    "sort_order": 8
+  },
+  {
+    "slug": "deficience_visuelle",
+    "name": "Déficience visuelle",
+    "category": "sensory",
+    "description": "Profil pour les besoins d'adaptation liés à la déficience visuelle.",
+    "system_prompt": "Tu adaptes le contenu pour un profil déficience visuelle.",
+    "user_prompt": "Applique les règles déficience visuelle ci-dessous.",
+    "pedagogical_rules": "Descriptions verbales précises. Hiérarchie claire. Compatible lecture vocale.",
+    "adaptation_level": "standard",
+    "options": {
+      "generate_summary": true,
+      "generate_quiz": true,
+      "generate_mindmap": false,
+      "generate_audio": true,
+      "generate_falc": false
+    },
+    "is_active": true,
+    "sort_order": 9
+  },
+  {
+    "slug": "deficience_auditive",
+    "name": "Déficience auditive",
+    "category": "sensory",
+    "description": "Profil pour les besoins d'adaptation liés à la déficience auditive.",
+    "system_prompt": "Tu adaptes le contenu pour un profil déficience auditive.",
+    "user_prompt": "Applique les règles déficience auditive ci-dessous.",
+    "pedagogical_rules": "Contenu visuel et textuel riche. Vocabulaire écrit explicite. Pas de dépendance à l'oral seul.",
+    "adaptation_level": "standard",
+    "options": {
+      "generate_summary": true,
+      "generate_quiz": true,
+      "generate_mindmap": true,
+      "generate_audio": false,
+      "generate_falc": false
+    },
+    "is_active": true,
+    "sort_order": 10
+  },
+  {
+    "slug": "allophone",
+    "name": "Allophone",
+    "category": "language",
+    "description": "Profil pour les élèves allophones en apprentissage du français.",
+    "system_prompt": "Tu adaptes le contenu pour un profil allophone (FLE).",
+    "user_prompt": "Applique les règles allophone ci-dessous.",
+    "pedagogical_rules": "Français simplifié (FLE). Définir chaque terme technique. Traductions contextuelles si utile.",
+    "adaptation_level": "simplified",
+    "options": {
+      "generate_summary": true,
+      "generate_quiz": true,
+      "generate_mindmap": true,
+      "generate_audio": true,
+      "generate_falc": false
+    },
+    "is_active": true,
+    "sort_order": 11
+  },
+  {
+    "slug": "lecture_simplifiee",
+    "name": "Lecture simplifiée",
+    "category": "learning",
+    "description": "Profil pour une lecture simplifiée et accessible.",
+    "system_prompt": "Tu adaptes le contenu pour une lecture simplifiée.",
+    "user_prompt": "Applique les règles de lecture simplifiée ci-dessous.",
+    "pedagogical_rules": "Phrases courtes. Vocabulaire courant. Une idée par paragraphe. Titres explicites. Exemples concrets.",
+    "adaptation_level": "simplified",
+    "options": {
+      "generate_summary": true,
+      "generate_quiz": true,
+      "generate_mindmap": true,
+      "generate_audio": true,
+      "generate_falc": false
+    },
+    "is_active": true,
+    "sort_order": 12
+  }
+]

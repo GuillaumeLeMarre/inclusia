@@ -28,7 +28,7 @@ export function AdaptationProfileSummary({
     summary.profileName,
     summary.levelLabel,
     summary.profiles.length > 0
-      ? `${summary.profiles.length} pathologie${summary.profiles.length > 1 ? "s" : ""}`
+      ? `${summary.profiles.length} profil${summary.profiles.length > 1 ? "s" : ""} pédagogique${summary.profiles.length > 1 ? "s" : ""}`
       : null,
   ].filter(Boolean);
 
@@ -63,7 +63,7 @@ export function AdaptationProfileSummary({
             <p className="text-base text-slate-600 dark:text-slate-400">
               {summary.profileName && (
                 <>
-                  Profil élève :{" "}
+                  Profil apprenant :{" "}
                   <strong className="text-slate-900 dark:text-slate-50">{summary.profileName}</strong>
                 </>
               )}
@@ -92,7 +92,7 @@ export function AdaptationProfileSummary({
           {summary.profiles.length > 0 && (
             <section>
               <h3 className="mb-3 text-base font-semibold text-slate-900 dark:text-slate-50">
-                Adaptations liées au profil et à la pathologie
+                Adaptations liées au profil pédagogique
               </h3>
               <ul className="space-y-4">
                 {summary.profiles.map((profile) => (

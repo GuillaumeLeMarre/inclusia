@@ -23,7 +23,10 @@ export async function POST(request: Request) {
       teacherId,
       profileId: parsed.data.profileId,
       documentId: parsed.data.documentId,
-      profileSlugs: parsed.data.profileSlugs,
+      teacherProfileId: parsed.data.teacherProfileId,
+      pedagogicalProfileId: parsed.data.pedagogicalProfileId,
+      pedagogicalProfileSlug: parsed.data.pedagogicalProfileSlug,
+      profileSlugs: parsed.data.profileSlugs ?? [],
       adaptationLevel: parsed.data.adaptationLevel,
       generatePictograms: parsed.data.generatePictograms,
     });

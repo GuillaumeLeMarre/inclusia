@@ -14,14 +14,23 @@ import {
 } from "@/services/adaptation/demo-adaptation.service";
 import { generateAdaptationWithAI } from "@/services/ai/adaptation.ai.service";
 import { generateFalcFromText } from "@/services/ai/falc.ai.service";
+import {
+  ProfileResolutionError,
+  resolvePedagogicalProfile,
+} from "@/services/profiles/profile-resolver.service";
+import { buildProfileAdaptationPrompt } from "@/services/profiles/profile-prompt-builder.service";
 import type { AdaptationLevel } from "@/types/adaptation-level";
+import type { ProfileSource } from "@/types/pedagogical-profile";
 
 export interface RunAdaptationInput {
   teacherId: string;
   profileId: string;
   documentId: string;
+  teacherProfileId?: string;
+  pedagogicalProfileId?: string;
+  pedagogicalProfileSlug?: string;
   profileSlugs: string[];
-  adaptationLevel: AdaptationLevel;
+  adaptationLevel?: AdaptationLevel;
   generatePictograms?: boolean;
 }
 
@@ -42,23 +51,77 @@ export async function runAdaptationEngine(
     throw new Error("Le document n'a pas de texte extractible. Réimportez-le.");
   }
 
-  let slugs = input.profileSlugs.length > 0
-    ? input.profileSlugs
-    : profile.adaptation_slugs;
+  let profileSource: ProfileSource | null = null;
+  let pedagogicalProfileId: string | null = null;
+  let teacherProfileId: string | null = null;
+  let adaptationLevel = input.adaptationLevel ?? "standard";
+  let slugs = input.profileSlugs;
+  let system: string;
+  let user: string;
 
-  if (input.adaptationLevel === "falc" && !slugs.includes("falc")) {
-    slugs = [...slugs, "falc"];
+  const usesPedagogicalProfile =
+    input.teacherProfileId
+    || input.pedagogicalProfileId
+    || input.pedagogicalProfileSlug;
+
+  if (usesPedagogicalProfile) {
+    try {
+      const resolved = await resolvePedagogicalProfile(client, {
+        teacherProfileId: input.teacherProfileId,
+        pedagogicalProfileId: input.pedagogicalProfileId,
+        slug: input.pedagogicalProfileSlug,
+        teacherId: input.teacherId,
+      });
+
+      profileSource = resolved.source;
+      teacherProfileId = resolved.source === "TEACHER_PROFILE" ? resolved.profileId : null;
+      pedagogicalProfileId =
+        resolved.source === "SYSTEM_PROFILE" ? resolved.profileId : input.pedagogicalProfileId ?? null;
+
+      if (!input.adaptationLevel) {
+        adaptationLevel = resolved.adaptationLevel;
+      }
+
+      if (resolved.slug) {
+        slugs = [resolved.slug];
+      }
+
+      if (adaptationLevel === "falc" && resolved.slug && !slugs.includes("falc")) {
+        slugs = [...slugs, "falc"];
+      }
+
+      const built = buildProfileAdaptationPrompt({
+        resolved,
+        learnerProfile: profile,
+        preferences,
+        sourceText,
+        documentTitle: document.title,
+      });
+      system = built.system;
+      user = built.user;
+    } catch (err) {
+      if (err instanceof ProfileResolutionError) throw err;
+      throw new Error("Impossible de charger le profil pédagogique");
+    }
+  } else {
+    slugs = slugs.length > 0 ? slugs : profile.adaptation_slugs;
+    if (adaptationLevel === "falc" && !slugs.includes("falc")) {
+      slugs = [...slugs, "falc"];
+    }
+
+    const legacy = await buildAdaptationPrompt({
+      profile,
+      preferences,
+      profileSlugs: slugs,
+      sourceText,
+      documentTitle: document.title,
+      adaptationLevel,
+      supabase: client,
+    });
+    system = legacy.system;
+    user = legacy.user;
+    profileSource = "FALLBACK_PROFILE";
   }
-
-  const { system, user } = await buildAdaptationPrompt({
-    profile,
-    preferences,
-    profileSlugs: slugs,
-    sourceText,
-    documentTitle: document.title,
-    adaptationLevel: input.adaptationLevel,
-    supabase: client,
-  });
 
   const isDemo = shouldUseDemoAi();
   let output: AdaptationOutput;
@@ -74,7 +137,7 @@ export async function runAdaptationEngine(
   let falcContent: string | null = null;
   let falcScore: number | null = null;
 
-  if (input.adaptationLevel === "falc") {
+  if (adaptationLevel === "falc") {
     const falc = await generateFalcFromText(output.adapted_content);
     falcContent = falc.content;
     falcScore = falc.score;
@@ -82,7 +145,7 @@ export async function runAdaptationEngine(
 
   let mindmapMermaid: string | null = null;
 
-  if (input.adaptationLevel === "falc" && falcContent) {
+  if (adaptationLevel === "falc" && falcContent) {
     try {
       const { generateMermaidFromCourse } = await import("@/services/ai/mindmap.ai.service");
       const { serializeMindmapResult } = await import("@/lib/mermaid/parse-mermaid-response");
@@ -122,7 +185,7 @@ export async function runAdaptationEngine(
     documentId: input.documentId,
     profileSlugs: slugs,
     status: isDemo ? "demo" : "completed",
-    adaptationLevel: input.adaptationLevel,
+    adaptationLevel,
     falcScore,
     falcContent,
     generatePictograms: input.generatePictograms ?? false,
@@ -139,5 +202,8 @@ export async function runAdaptationEngine(
     audioScript: output.audio_script,
     processingTimeMs,
     isDemo,
+    pedagogicalProfileId,
+    teacherProfileId,
+    profileSource,
   });
 }

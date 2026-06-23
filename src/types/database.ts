@@ -191,6 +191,9 @@ export interface Database {
           processing_time_ms: number | null;
           is_demo: boolean;
           metadata: Json;
+          pedagogical_profile_id: string | null;
+          teacher_profile_id: string | null;
+          profile_source: "TEACHER_PROFILE" | "SYSTEM_PROFILE" | "FALLBACK_PROFILE" | null;
           created_at: string;
           updated_at: string;
         };
@@ -206,6 +209,9 @@ export interface Database {
           falc_content?: string | null;
           generate_pictograms?: boolean;
           falc_pictograms?: Json | null;
+          pedagogical_profile_id?: string | null;
+          teacher_profile_id?: string | null;
+          profile_source?: "TEACHER_PROFILE" | "SYSTEM_PROFILE" | "FALLBACK_PROFILE" | null;
           adapted_content?: string | null;
           summary?: string | null;
           memory_sheet?: string | null;
@@ -291,6 +297,146 @@ export interface Database {
           sort_order?: number;
         };
         Update: Partial<Database["public"]["Tables"]["adaptation_profiles"]["Insert"]>;
+        Relationships: [];
+      };
+      pedagogical_profiles: {
+        Row: {
+          id: string;
+          slug: string;
+          name: string;
+          category: string;
+          description: string | null;
+          system_prompt: string;
+          user_prompt: string;
+          pedagogical_rules: string;
+          adaptation_level: string;
+          options: Json;
+          is_active: boolean;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          slug: string;
+          name: string;
+          category?: string;
+          description?: string | null;
+          system_prompt?: string;
+          user_prompt?: string;
+          pedagogical_rules?: string;
+          adaptation_level?: string;
+          options?: Json;
+          is_active?: boolean;
+          sort_order?: number;
+        };
+        Update: Partial<Database["public"]["Tables"]["pedagogical_profiles"]["Insert"]>;
+        Relationships: [];
+      };
+      pedagogical_profile_versions: {
+        Row: {
+          id: string;
+          profile_id: string;
+          version: number;
+          slug: string;
+          name: string;
+          category: string;
+          description: string | null;
+          system_prompt: string;
+          user_prompt: string;
+          pedagogical_rules: string;
+          adaptation_level: string;
+          options: Json;
+          is_active: boolean;
+          sort_order: number;
+          change_note: string | null;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          profile_id: string;
+          version: number;
+          slug: string;
+          name: string;
+          category: string;
+          description?: string | null;
+          system_prompt: string;
+          user_prompt: string;
+          pedagogical_rules: string;
+          adaptation_level: string;
+          options: Json;
+          is_active: boolean;
+          sort_order?: number;
+          change_note?: string | null;
+          created_by?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["pedagogical_profile_versions"]["Insert"]>;
+        Relationships: [];
+      };
+      teacher_profiles: {
+        Row: {
+          id: string;
+          teacher_id: string;
+          source_profile_id: string | null;
+          name: string;
+          description: string | null;
+          custom_prompt: string | null;
+          custom_rules: string | null;
+          adaptation_level: string;
+          options: Json;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          teacher_id: string;
+          source_profile_id?: string | null;
+          name: string;
+          description?: string | null;
+          custom_prompt?: string | null;
+          custom_rules?: string | null;
+          adaptation_level?: string;
+          options?: Json;
+          is_active?: boolean;
+        };
+        Update: Partial<Database["public"]["Tables"]["teacher_profiles"]["Insert"]>;
+        Relationships: [];
+      };
+      teacher_profile_versions: {
+        Row: {
+          id: string;
+          profile_id: string;
+          version: number;
+          source_profile_id: string | null;
+          name: string;
+          description: string | null;
+          custom_prompt: string | null;
+          custom_rules: string | null;
+          adaptation_level: string;
+          options: Json;
+          is_active: boolean;
+          change_note: string | null;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          profile_id: string;
+          version: number;
+          source_profile_id?: string | null;
+          name: string;
+          description?: string | null;
+          custom_prompt?: string | null;
+          custom_rules?: string | null;
+          adaptation_level: string;
+          options: Json;
+          is_active: boolean;
+          change_note?: string | null;
+          created_by?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["teacher_profile_versions"]["Insert"]>;
         Relationships: [];
       };
       adaptation_prompt_templates: {

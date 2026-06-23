@@ -16,7 +16,7 @@ export function ProfileList({ profiles }: ProfileListProps) {
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12 md:py-16 text-center px-4">
           <p className="text-base text-slate-500 mb-4">Aucun profil pour le moment.</p>
-          <Link href="/profiles/new" className="w-full sm:w-auto">
+          <Link href="/learners/new" className="w-full sm:w-auto">
             <Button className="w-full sm:w-auto">
               <Plus className="h-4 w-4" />
               Créer un profil
