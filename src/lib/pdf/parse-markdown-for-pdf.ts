@@ -13,8 +13,8 @@ export interface OrderedListItem {
 }
 
 export type MarkdownBlock =
-  | { type: "heading"; level: 1 | 2 | 3 | 4 | 5 | 6; spans: InlineSpan[] }
-  | { type: "paragraph"; spans: InlineSpan[] }
+  | { type: "heading"; level: 1 | 2 | 3 | 4 | 5 | 6; spans: InlineSpan[]; isCourseTitle?: boolean }
+  | { type: "paragraph"; spans: InlineSpan[]; isCourseTitle?: boolean }
   | { type: "ul"; items: InlineSpan[][] }
   | { type: "ol"; items: OrderedListItem[] }
   | { type: "blockquote"; spans: InlineSpan[] }
@@ -150,6 +150,35 @@ function collectUnorderedListItems(lines: string[], startIndex: number): {
   return { items, nextIndex: i };
 }
 
+function isBoldOnlySpans(spans: InlineSpan[]): boolean {
+  return (
+    spans.length === 1
+    && spans[0]?.bold === true
+    && !spans[0]?.italic
+    && !spans[0]?.code
+  );
+}
+
+export function markFirstCourseTitle(blocks: MarkdownBlock[]): MarkdownBlock[] {
+  let marked = false;
+
+  return blocks.map((block) => {
+    if (marked) return block;
+
+    if (block.type === "heading") {
+      marked = true;
+      return { ...block, isCourseTitle: true };
+    }
+
+    if (block.type === "paragraph" && isBoldOnlySpans(block.spans)) {
+      marked = true;
+      return { ...block, isCourseTitle: true };
+    }
+
+    return block;
+  });
+}
+
 export function parseMarkdownBlocks(raw: string): MarkdownBlock[] {
   const text = cleanAdaptationContent(raw);
   if (!text) return [];
@@ -245,5 +274,5 @@ export function parseMarkdownBlocks(raw: string): MarkdownBlock[] {
     });
   }
 
-  return blocks;
+  return markFirstCourseTitle(blocks);
 }

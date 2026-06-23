@@ -4,27 +4,33 @@ import { Loader2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FalcPictogramCard } from "@/features/falc/components/falc-pictogram-card";
-import { useFalcPictograms } from "@/features/falc/hooks/use-falc-pictograms";
+import {
+  useFalcPictograms,
+  type FalcPictogramsState,
+} from "@/features/falc/hooks/use-falc-pictograms";
 import type { FalcPictogramsData } from "@/types/falc";
 
 interface FalcPictogramsPanelProps {
-  adaptationId: string;
-  initialData: FalcPictogramsData | null;
+  adaptationId?: string;
+  initialData?: FalcPictogramsData | null;
   enabled: boolean;
   compact?: boolean;
+  state?: FalcPictogramsState;
 }
 
 export function FalcPictogramsPanel({
-  adaptationId,
-  initialData,
+  adaptationId = "",
+  initialData = null,
   enabled,
   compact = false,
+  state,
 }: FalcPictogramsPanelProps) {
-  const { data, loading, error, regenerate, retry } = useFalcPictograms(
+  const internalState = useFalcPictograms(
     adaptationId,
     initialData,
-    enabled,
+    enabled && !state,
   );
+  const { data, loading, error, regenerate, retry } = state ?? internalState;
 
   if (!enabled) return null;
 
@@ -56,7 +62,7 @@ export function FalcPictogramsPanel({
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-slate-600 dark:text-slate-400">
-          Illustrations ARASAAC pour faciliter la compréhension du support.
+          Illustrations ARASAAC intégrées dans le cours (mots en gras) et récapitulées ici.
         </p>
 
         {loading && items.length === 0 && (

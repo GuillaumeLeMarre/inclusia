@@ -70,19 +70,8 @@ export async function buildAdaptationPdfBuffer(
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const margin = 48;
   const theme = buildMarkdownPdfTheme(doc, falcMode, margin);
-  const titleSize = falcMode ? 22 : 20;
-  const titleLineHeight = falcMode ? 32 : 28;
 
-  let y = margin;
-
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(titleSize);
-  wrapLine(doc, title, theme.maxWidth).forEach((line) => {
-    doc.text(line, margin, y);
-    y += titleLineHeight;
-  });
-
-  y += 16;
+  void title;
 
   const schemaAsset = await resolveSchemaAsset(options, theme.maxWidth);
 
@@ -92,7 +81,7 @@ export async function buildAdaptationPdfBuffer(
     schemaSvg: options.schemaSvg,
   });
   if (blocks.length > 0) {
-    renderMarkdownBlocksToPdf(doc, blocks, theme, y, schemaAsset);
+    renderMarkdownBlocksToPdf(doc, blocks, theme, margin, schemaAsset);
   }
 
   const footer =

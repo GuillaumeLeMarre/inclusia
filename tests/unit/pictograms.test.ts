@@ -63,4 +63,24 @@ describe("pickBestArasaacResult", () => {
     assert.equal(best?._id, 7252);
     assert.ok(scoreArasaacMatch(best!, "soleil") > scoreArasaacMatch(results[0]!, "soleil"));
   });
+
+  it("ne confond pas biens et amphibiens à la génération", () => {
+    const results = [
+      {
+        _id: 99,
+        schematic: true,
+        aac: true,
+        keywords: [{ keyword: "amphibiens", type: 1 }],
+      },
+      {
+        _id: 42,
+        schematic: false,
+        keywords: [{ keyword: "bien", type: 1 }],
+      },
+    ];
+
+    const best = pickBestArasaacResult(results, "biens");
+    assert.equal(best?._id, 42);
+    assert.equal(scoreArasaacMatch(results[0]!, "biens"), 0);
+  });
 });

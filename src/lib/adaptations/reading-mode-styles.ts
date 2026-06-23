@@ -36,7 +36,29 @@ export function getAdaptationContainerClasses(mode: ReadingMode): string {
   }
 }
 
-export function getHeadingClasses(mode: ReadingMode, level: 1 | 2 | 3): string {
+export function getFirstCourseTitleClasses(mode: ReadingMode): string {
+  const dys = mode === "dyslexia" || mode === "high-contrast" || mode === "falc";
+  const size = dys ? "text-3xl sm:text-4xl" : "text-2xl sm:text-3xl";
+  const contrast =
+    mode === "high-contrast"
+      ? "text-black dark:text-white decoration-black dark:decoration-white"
+      : "text-slate-900 dark:text-slate-50 decoration-slate-900 dark:decoration-slate-50";
+
+  return cn(
+    "font-bold text-center mb-6 mt-0",
+    size,
+    contrast,
+    "[&_strong]:font-bold [&_strong]:!text-inherit",
+  );
+}
+
+export function getHeadingClasses(
+  mode: ReadingMode,
+  level: 1 | 2 | 3,
+  isFirstCourseHeading = false,
+): string {
+  if (isFirstCourseHeading) return getFirstCourseTitleClasses(mode);
+
   const dys = mode === "dyslexia" || mode === "high-contrast" || mode === "falc";
   const sizes = {
     1: dys ? "text-3xl sm:text-4xl" : "text-2xl sm:text-3xl",
@@ -49,7 +71,11 @@ export function getHeadingClasses(mode: ReadingMode, level: 1 | 2 | 3): string {
       ? "text-black dark:text-white border-b-2 border-black dark:border-white pb-2"
       : "text-slate-900 dark:text-slate-50";
 
-  return cn("font-bold mt-8 mb-4 first:mt-0", sizes[level], contrast);
+  return cn(
+    "font-bold mt-8 mb-4 first:mt-0",
+    sizes[level],
+    contrast,
+  );
 }
 
 export function getParagraphClasses(mode: ReadingMode): string {

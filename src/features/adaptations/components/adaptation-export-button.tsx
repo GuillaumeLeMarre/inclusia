@@ -35,7 +35,6 @@ export function AdaptationExportButton({
 
       await downloadAdaptationPdf(adaptationId, {
         schemaMermaidCode: mermaidCode,
-        filenamePrefix: isFalc ? "support-falc" : "cours-adapte",
       });
     } catch (err) {
       console.error(err);

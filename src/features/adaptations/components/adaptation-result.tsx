@@ -11,6 +11,7 @@ import { SchemaExportRenderer } from "@/features/adaptations/components/schema-e
 import { DocumentSourceLinkCard } from "@/features/adaptations/components/document-source-link-card";
 import { FalcScoreBadge } from "@/features/falc/components/falc-score-badge";
 import { FalcPictogramsPanel } from "@/features/falc/components/falc-pictograms-panel";
+import { useFalcPictograms } from "@/features/falc/hooks/use-falc-pictograms";
 import { SchemaPanel } from "@/features/mindmaps/components/schema-panel";
 import { useAdaptationSchema } from "@/features/mindmaps/hooks/use-adaptation-schema";
 import { getProfileName } from "@/lib/constants/profiles";
@@ -40,6 +41,14 @@ export function AdaptationResult({
   const courseContent = isFalc && adaptation.falc_content
     ? adaptation.falc_content
     : adaptation.adapted_content;
+  const pictogramsEnabled = Boolean(adaptation.generate_pictograms);
+  const pictogramsState = useFalcPictograms(
+    adaptation.id,
+    adaptation.falc_pictograms,
+    pictogramsEnabled,
+  );
+  const inlinePictograms =
+    isFalc && pictogramsEnabled ? pictogramsState.data?.items ?? [] : null;
 
   return (
     <div className="space-y-6">
@@ -77,10 +86,9 @@ export function AdaptationResult({
       </div>
 
       <FalcPictogramsPanel
-        adaptationId={adaptation.id}
-        initialData={adaptation.falc_pictograms}
-        enabled={adaptation.generate_pictograms}
+        enabled={pictogramsEnabled}
         compact
+        state={pictogramsState}
       />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -118,6 +126,7 @@ export function AdaptationResult({
             schemaEnabled={activeTab === "resume"}
             appendSchemaIfMissing={isFalc}
             readingMode={isFalc ? "falc" : undefined}
+            inlinePictograms={inlinePictograms}
           />
         </TabsContent>
 
@@ -134,11 +143,7 @@ export function AdaptationResult({
 
         {adaptation.generate_pictograms && (
           <TabsContent value="pictogrammes" className="mt-4">
-            <FalcPictogramsPanel
-              adaptationId={adaptation.id}
-              initialData={adaptation.falc_pictograms}
-              enabled
-            />
+            <FalcPictogramsPanel enabled state={pictogramsState} />
           </TabsContent>
         )}
       </Tabs>
@@ -194,6 +199,7 @@ function ResultCard({
   appendSchemaIfMissing,
   schemaEnabled,
   readingMode,
+  inlinePictograms,
 }: {
   title: string;
   content: string | null;
@@ -203,11 +209,15 @@ function ResultCard({
   appendSchemaIfMissing?: boolean;
   schemaEnabled?: boolean;
   readingMode?: import("@/types/reading-mode").ReadingMode;
+  inlinePictograms?: import("@/types/falc").FalcPictogramItem[] | null;
 }) {
   if (!content) return null;
+
   return (
     <Card>
-      <CardHeader><CardTitle className="text-lg">{title}</CardTitle></CardHeader>
+      <CardHeader>
+        <CardTitle className="text-lg">{title}</CardTitle>
+      </CardHeader>
       <CardContent>
         <AdaptationRenderer
           content={content}
@@ -217,6 +227,7 @@ function ResultCard({
           schemaLoading={schemaLoading}
           appendSchemaIfMissing={appendSchemaIfMissing}
           schemaEnabled={schemaEnabled}
+          inlinePictograms={inlinePictograms}
         />
       </CardContent>
     </Card>

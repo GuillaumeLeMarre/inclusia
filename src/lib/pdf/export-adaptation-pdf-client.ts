@@ -4,11 +4,11 @@ import {
 } from "@/lib/mermaid/capture-schema-dom";
 import { renderMermaidToPngInBrowser, renderMermaidToSvgInBrowser } from "@/lib/mermaid/render-mermaid-browser";
 import { svgToPngDataUrl } from "@/lib/mermaid/svg-to-png-browser";
+import { parseContentDispositionFilename } from "@/lib/pdf/adaptation-export-filename";
 
 interface DownloadAdaptationPdfOptions {
   schemaMermaidCode?: string | null;
   fetchSchemaIfMissing?: boolean;
-  filenamePrefix?: string;
   endpoint?: string;
 }
 
@@ -101,7 +101,9 @@ export async function downloadAdaptationPdf(
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `${options.filenamePrefix ?? "cours-adapte"}-${adaptationId.slice(0, 8)}.pdf`;
+  link.download =
+    parseContentDispositionFilename(res.headers.get("Content-Disposition"))
+    ?? "cours-adapte.pdf";
   link.click();
   URL.revokeObjectURL(url);
 }

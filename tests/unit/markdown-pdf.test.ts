@@ -5,6 +5,7 @@ import {
   parseMarkdownBlocks,
 } from "../../src/lib/pdf/parse-markdown-for-pdf.ts";
 import { buildAdaptationPdfBuffer } from "../../src/services/adaptation/adaptation-pdf.service.ts";
+import { getSchemaSectionGroupStartIndex } from "../../src/lib/pdf/schema-section-pdf-layout.ts";
 
 describe("parseInlineMarkdown", () => {
   it("parse le gras et l'italique", () => {
@@ -58,6 +59,49 @@ Paragraphe avec **gras**.
     if (blocks[0]?.type === "ol") {
       assert.equal(blocks[0].items[1]?.number, 2);
     }
+  });
+
+  it("marque le premier titre ## comme titre de cours", () => {
+    const blocks = parseMarkdownBlocks("## La Révolution\n\nParagraphe.");
+    assert.equal(blocks[0]?.type, "heading");
+    if (blocks[0]?.type === "heading") {
+      assert.equal(blocks[0].isCourseTitle, true);
+    }
+    assert.equal(blocks[1]?.type, "paragraph");
+    if (blocks[1]?.type === "paragraph") {
+      assert.equal(blocks[1].isCourseTitle, undefined);
+    }
+  });
+
+  it("marque un paragraphe gras seul comme titre de cours (FALC)", () => {
+    const blocks = parseMarkdownBlocks("**La Révolution française**\n\nTexte.");
+    assert.equal(blocks[0]?.type, "paragraph");
+    if (blocks[0]?.type === "paragraph") {
+      assert.equal(blocks[0].isCourseTitle, true);
+    }
+  });
+
+  it("ne marque qu'un seul titre de cours", () => {
+    const blocks = parseMarkdownBlocks("## Titre\n\n## Sous-titre");
+    if (blocks[0]?.type === "heading") {
+      assert.equal(blocks[0].isCourseTitle, true);
+    }
+    if (blocks[1]?.type === "heading") {
+      assert.equal(blocks[1].isCourseTitle, undefined);
+    }
+  });
+
+  it("regroupe la section schéma (titre, intro, image)", () => {
+    const blocks = parseMarkdownBlocks(`## Schéma
+
+Ce schéma t'aide à comprendre le cours.
+
+![Carte du cours](schema)`);
+
+    assert.equal(blocks.length, 3);
+    assert.equal(getSchemaSectionGroupStartIndex(blocks, 0), 0);
+    assert.equal(getSchemaSectionGroupStartIndex(blocks, 1), null);
+    assert.equal(getSchemaSectionGroupStartIndex(blocks, 2), null);
   });
 });
 

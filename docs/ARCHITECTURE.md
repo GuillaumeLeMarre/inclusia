@@ -67,7 +67,9 @@ inclusia/
 │   │   ├── demo/
 │   │   └── connectors/               # Moodle, Teams, etc.
 │   ├── repositories/                 # Accès Supabase
-│   ├── lib/                          # Utils, config, Supabase clients
+│   ├── lib/
+│   │   ├── pdf/                      # Export PDF (parse Markdown, jsPDF, schémas)
+│   │   └── ...                       # Utils, config, Supabase clients
 │   ├── prompts/                      # Prompts par défaut
 │   ├── hooks/                        # React hooks
 │   ├── types/                        # Types TypeScript
@@ -83,6 +85,8 @@ inclusia/
 │   └── e2e/
 └── docs/
     ├── ARCHITECTURE.md
+    ├── FALC.md
+    ├── PDF_EXPORT.md
     └── IMPLEMENTATION_PLAN.md
 ```
 

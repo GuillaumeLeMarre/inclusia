@@ -1,6 +1,10 @@
 import type { jsPDF } from "jspdf";
 import type { InlineSpan, MarkdownBlock, OrderedListItem } from "@/lib/pdf/parse-markdown-for-pdf";
 import type { SchemaPdfAsset } from "@/lib/pdf/schema-pdf-image";
+import {
+  ensureSchemaSectionFitsOnPage,
+  estimateSchemaBlockHeight,
+} from "@/lib/pdf/schema-section-pdf-layout";
 
 export interface MarkdownPdfTheme {
   falcMode: boolean;
@@ -27,6 +31,12 @@ function pageHeight(doc: jsPDF): number {
 
 function ensureSpace(ctx: RenderContext, needed: number): void {
   if (ctx.y + needed <= pageHeight(ctx.doc) - ctx.theme.margin) return;
+  ctx.doc.addPage();
+  ctx.y = ctx.theme.margin;
+}
+
+function ensureBlockFits(ctx: RenderContext, neededHeight: number): void {
+  if (neededHeight <= pageHeight(ctx.doc) - ctx.theme.margin - ctx.y) return;
   ctx.doc.addPage();
   ctx.y = ctx.theme.margin;
 }
@@ -83,7 +93,40 @@ function renderSpans(
   ctx.y += lineHeight;
 }
 
+function spansToPlainText(spans: InlineSpan[]): string {
+  return spans.map((span) => span.text).join("");
+}
+
+function getCourseTitleSize(theme: MarkdownPdfTheme): number {
+  return theme.falcMode ? 22 : 20;
+}
+
+function renderCourseTitleBlock(ctx: RenderContext, spans: InlineSpan[]): void {
+  const fontSize = getCourseTitleSize(ctx.theme);
+  const lineHeight = fontSize * 1.3;
+  const centerX = ctx.doc.internal.pageSize.getWidth() / 2;
+  const text = spansToPlainText(spans);
+  const lines = ctx.doc.splitTextToSize(text, ctx.theme.maxWidth) as string[];
+
+  ctx.y += ctx.theme.falcMode ? 4 : 0;
+
+  for (const line of lines) {
+    ensureSpace(ctx, lineHeight);
+    ctx.doc.setFont("helvetica", "bold");
+    ctx.doc.setFontSize(fontSize);
+    ctx.doc.text(line, centerX, ctx.y, { align: "center" });
+    ctx.y += lineHeight;
+  }
+
+  ctx.y += ctx.theme.paragraphGap * 0.75;
+}
+
 function renderHeading(ctx: RenderContext, block: Extract<MarkdownBlock, { type: "heading" }>): void {
+  if (block.isCourseTitle) {
+    renderCourseTitleBlock(ctx, block.spans);
+    return;
+  }
+
   const size = ctx.theme.headingSizes[block.level];
   const gap = ctx.theme.headingGap[block.level];
   ctx.y += gap.before;
@@ -148,7 +191,9 @@ function renderSchemaBlock(
   block: Extract<MarkdownBlock, { type: "schema" }>,
   schemaAsset: SchemaPdfAsset | null,
 ): void {
-  ensureSpace(ctx, ctx.theme.bodyLineHeight * 2);
+  const blockHeight = estimateSchemaBlockHeight(ctx, block, schemaAsset);
+  ensureBlockFits(ctx, blockHeight);
+
   ctx.doc.setFont("helvetica", "bold");
   ctx.doc.setFontSize(ctx.theme.bodySize);
   ctx.doc.text("Schéma", ctx.x, ctx.y);
@@ -201,12 +246,27 @@ export function renderMarkdownBlocksToPdf(
     y: startY,
   };
 
-  for (const block of blocks) {
+  for (let i = 0; i < blocks.length; i += 1) {
+    const block = blocks[i]!;
+    ctx.y = ensureSchemaSectionFitsOnPage(
+      doc,
+      theme,
+      ctx.y,
+      pageHeight(doc),
+      blocks,
+      i,
+      schemaAsset,
+    );
+
     switch (block.type) {
       case "heading":
         renderHeading(ctx, block);
         break;
       case "paragraph":
+        if (block.isCourseTitle) {
+          renderCourseTitleBlock(ctx, block.spans);
+          break;
+        }
         ensureSpace(ctx, ctx.theme.bodyLineHeight);
         renderSpans(ctx, block.spans, {
           fontSize: ctx.theme.bodySize,

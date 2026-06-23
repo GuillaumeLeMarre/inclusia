@@ -1,20 +1,32 @@
 "use client";
 
+import type { ReactNode } from "react";
 import type { Components } from "react-markdown";
 import {
   InlineSchemaEmbed,
   InlineSchemaLoading,
 } from "@/components/adaptations/inline-schema-embed";
+import { InlinePictogramStrong } from "@/components/adaptations/inline-pictogram-strong";
 import { SchemaImageCard } from "@/components/adaptations/schema-image-card";
 import {
+  isBoldOnlyParagraph,
+  isFirstCourseTitleNode,
   isImageOnlyParagraph,
   markdownNodeHasBlockChild,
+  type FirstCourseTitleLocation,
 } from "@/lib/adaptations/markdown-html-utils";
 import {
+  getFirstCourseTitleClasses,
   getHeadingClasses,
   getParagraphClasses,
   getStrongClasses,
 } from "@/lib/adaptations/reading-mode-styles";
+import {
+  buildPictogramLookup,
+  extractMarkdownChildrenText,
+  findPictogramForText,
+} from "@/lib/falc/pictogram-lookup";
+import type { FalcPictogramItem } from "@/types/falc";
 import type { ReadingMode } from "@/types/reading-mode";
 import type { MermaidGenerationResult } from "@/types/mindmap";
 import { cn } from "@/lib/utils";
@@ -25,6 +37,8 @@ interface MarkdownComponentsOptions {
   embeddedSchema?: MermaidGenerationResult | null;
   schemaLoading?: boolean;
   schemaEnabled?: boolean;
+  inlinePictograms?: FalcPictogramItem[] | null;
+  firstCourseTitle?: FirstCourseTitleLocation | null;
 }
 
 export function createAdaptationMarkdownComponents({
@@ -33,8 +47,26 @@ export function createAdaptationMarkdownComponents({
   embeddedSchema,
   schemaLoading = false,
   schemaEnabled = true,
+  inlinePictograms = null,
+  firstCourseTitle = null,
 }: MarkdownComponentsOptions): Components {
   const falcMode = mode === "falc";
+  const pictogramLookup =
+    falcMode && inlinePictograms?.length
+      ? buildPictogramLookup(inlinePictograms)
+      : null;
+
+  const renderCourseHeading = (
+    level: 1 | 2 | 3,
+    Tag: "h2" | "h3" | "h4",
+    children: ReactNode,
+    node: unknown,
+  ) => {
+    const isFirst = isFirstCourseTitleNode(node, firstCourseTitle, "heading");
+    return (
+      <Tag className={getHeadingClasses(mode, level, isFirst)}>{children}</Tag>
+    );
+  };
 
   const renderSchemaImage = (alt?: string) => {
     if (embeddedSchema?.mermaidCode) {
@@ -54,18 +86,22 @@ export function createAdaptationMarkdownComponents({
   };
 
   return {
-    h1: ({ children }) => (
-      <h2 className={getHeadingClasses(mode, 1)}>{children}</h2>
-    ),
-    h2: ({ children }) => (
-      <h3 className={getHeadingClasses(mode, 2)}>{children}</h3>
-    ),
-    h3: ({ children }) => (
-      <h4 className={getHeadingClasses(mode, 3)}>{children}</h4>
-    ),
+    h1: ({ children, node }) => renderCourseHeading(1, "h2", children, node),
+    h2: ({ children, node }) => renderCourseHeading(2, "h3", children, node),
+    h3: ({ children, node }) => renderCourseHeading(3, "h4", children, node),
     p: ({ children, node }) => {
       const blockContent = markdownNodeHasBlockChild(node);
       const className = getParagraphClasses(mode);
+
+      if (
+        !blockContent
+        && isBoldOnlyParagraph(node)
+        && isFirstCourseTitleNode(node, firstCourseTitle, "bold-paragraph")
+      ) {
+        return (
+          <p className={getFirstCourseTitleClasses(mode)}>{children}</p>
+        );
+      }
 
       if (blockContent) {
         if (isImageOnlyParagraph(node)) {
@@ -76,9 +112,26 @@ export function createAdaptationMarkdownComponents({
 
       return <p className={className}>{children}</p>;
     },
-    strong: ({ children }) => (
-      <strong className={getStrongClasses(mode)}>{children}</strong>
-    ),
+    strong: ({ children, node }) => {
+      const strongClasses = getStrongClasses(mode);
+      const skipPictogram = isFirstCourseTitleNode(node, firstCourseTitle, "bold-paragraph");
+
+      if (!pictogramLookup || skipPictogram) {
+        return <strong className={strongClasses}>{children}</strong>;
+      }
+
+      const text = extractMarkdownChildrenText(children);
+      const pictogram = findPictogramForText(text, pictogramLookup);
+      if (!pictogram) {
+        return <strong className={strongClasses}>{children}</strong>;
+      }
+
+      return (
+        <InlinePictogramStrong item={pictogram} className={strongClasses}>
+          {children}
+        </InlinePictogramStrong>
+      );
+    },
     em: ({ children }) => (
       <em className="italic text-slate-800 dark:text-slate-200">{children}</em>
     ),

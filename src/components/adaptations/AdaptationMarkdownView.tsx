@@ -9,9 +9,11 @@ import {
   InlineSchemaLoading,
 } from "@/components/adaptations/inline-schema-embed";
 import { cleanAdaptationContent } from "@/lib/adaptations/clean-adaptation-content";
+import { findFirstCourseTitleLocation } from "@/lib/adaptations/markdown-html-utils";
 import { contentHasMarkdownImage } from "@/lib/adaptations/markdown-html-utils";
 import { getAdaptationContainerClasses } from "@/lib/adaptations/reading-mode-styles";
 import type { ReadingMode } from "@/types/reading-mode";
+import type { FalcPictogramItem } from "@/types/falc";
 import type { MermaidGenerationResult } from "@/types/mindmap";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +26,7 @@ interface AdaptationMarkdownViewProps {
   schemaLoading?: boolean;
   appendSchemaIfMissing?: boolean;
   schemaEnabled?: boolean;
+  inlinePictograms?: FalcPictogramItem[] | null;
 }
 
 /** Rendu Markdown pédagogique (sans dépendance au mode lecture stocké). */
@@ -36,8 +39,13 @@ export function AdaptationMarkdownView({
   schemaLoading = false,
   appendSchemaIfMissing = false,
   schemaEnabled = true,
+  inlinePictograms = null,
 }: AdaptationMarkdownViewProps) {
   const cleaned = useMemo(() => cleanAdaptationContent(content), [content]);
+  const firstCourseTitle = useMemo(
+    () => findFirstCourseTitleLocation(cleaned),
+    [cleaned],
+  );
   const components = useMemo(
     () =>
       createAdaptationMarkdownComponents({
@@ -46,8 +54,18 @@ export function AdaptationMarkdownView({
         embeddedSchema,
         schemaLoading,
         schemaEnabled,
+        inlinePictograms,
+        firstCourseTitle,
       }),
-    [mode, onOpenSchema, embeddedSchema, schemaLoading, schemaEnabled],
+    [
+      mode,
+      onOpenSchema,
+      embeddedSchema,
+      schemaLoading,
+      schemaEnabled,
+      inlinePictograms,
+      firstCourseTitle,
+    ],
   );
 
   const falcMode = mode === "falc";

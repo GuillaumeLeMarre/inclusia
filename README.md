@@ -56,7 +56,11 @@ src/
 └── types/         # Types TypeScript + database.ts
 ```
 
-Documentation architecture : [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+Documentation :
+
+- [Architecture](docs/ARCHITECTURE.md)
+- [Module FALC](docs/FALC.md)
+- [Export PDF](docs/PDF_EXPORT.md)
 
 ## Scripts
 
@@ -67,6 +71,7 @@ Documentation architecture : [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 | `npm run supabase:start` | Supabase local |
 | `npm run supabase:db:push` | Pousser migrations vers cloud |
 | `npm run supabase:check` | Tester connexion Supabase |
+| `npm run test:unit` | Tests unitaires (PDF, FALC, mindmap…) |
 
 ## Licence
 

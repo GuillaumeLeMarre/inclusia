@@ -3,6 +3,7 @@
 import { AdaptationMarkdownView } from "@/components/adaptations/AdaptationMarkdownView";
 import { useReadingMode } from "@/hooks/use-reading-mode";
 import type { ReadingMode } from "@/types/reading-mode";
+import type { FalcPictogramItem } from "@/types/falc";
 import type { MermaidGenerationResult } from "@/types/mindmap";
 
 interface AdaptationRendererProps {
@@ -14,6 +15,7 @@ interface AdaptationRendererProps {
   schemaLoading?: boolean;
   appendSchemaIfMissing?: boolean;
   schemaEnabled?: boolean;
+  inlinePictograms?: FalcPictogramItem[] | null;
 }
 
 export function AdaptationRenderer({
@@ -25,6 +27,7 @@ export function AdaptationRenderer({
   schemaLoading,
   appendSchemaIfMissing,
   schemaEnabled,
+  inlinePictograms,
 }: AdaptationRendererProps) {
   const { mode: storedMode } = useReadingMode();
 
@@ -38,6 +41,7 @@ export function AdaptationRenderer({
       schemaLoading={schemaLoading}
       appendSchemaIfMissing={appendSchemaIfMissing}
       schemaEnabled={schemaEnabled}
+      inlinePictograms={inlinePictograms}
     />
   );
 }

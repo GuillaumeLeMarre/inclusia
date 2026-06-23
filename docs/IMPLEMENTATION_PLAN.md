@@ -28,10 +28,10 @@
 
 ## Phase 3 — Outputs enrichis
 
-- [ ] Moteur mindmap (`/api/mindmap`)
+- [x] Moteur mindmap (`/api/mindmap`, schémas Mermaid)
 - [ ] Service audio (`/api/audio`, `audio.service.ts`)
-- [ ] Affichage résultats (cours, résumé, fiche, quiz, vocabulaire)
-- [ ] Export PDF des supports adaptés
+- [x] Affichage résultats (cours adapté, onglets, schéma, FALC, pictogrammes)
+- [x] Export PDF des supports adaptés (Markdown, schémas, titre cours centré — voir `docs/PDF_EXPORT.md`)
 
 ## Phase 4 — Profil dynamique
 

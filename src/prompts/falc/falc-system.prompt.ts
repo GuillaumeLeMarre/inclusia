@@ -14,6 +14,8 @@ Règles :
 * paragraphes courts
 * conserver le sens pédagogique et les informations essentielles
 * utiliser du Markdown simple : titres ##, listes -, gras pour mots importants
+* commencer par un titre principal unique en ## (ex. ## La Révolution française), jamais en gras seul sur la première ligne
+* réserver le gras aux mots importants dans le corps du texte, pas pour le titre principal
 
 Le résultat doit être compréhensible par une personne ayant des difficultés importantes de lecture ou de compréhension.
 

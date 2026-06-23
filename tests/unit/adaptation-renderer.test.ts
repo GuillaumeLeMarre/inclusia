@@ -2,6 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { renderToStaticMarkup } from "react-dom/server";
 import { cleanAdaptationContent } from "../../src/lib/adaptations/clean-adaptation-content.ts";
+import { findFirstCourseTitleLocation } from "../../src/lib/adaptations/markdown-html-utils.ts";
 import { getAdaptationContainerClasses } from "../../src/lib/adaptations/reading-mode-styles.ts";
 import { AdaptationMarkdownView } from "../../src/components/adaptations/AdaptationMarkdownView.tsx";
 import { createElement } from "react";
@@ -14,6 +15,16 @@ describe("cleanAdaptationContent", () => {
 
   it("réduit les sauts de ligne excessifs", () => {
     assert.equal(cleanAdaptationContent("A\n\n\n\nB"), "A\n\nB");
+  });
+});
+
+describe("findFirstCourseTitleLocation", () => {
+  it("repère le premier titre ## par numéro de ligne", () => {
+    const content = cleanAdaptationContent("## Gestion Financière\n\nTexte.");
+    assert.deepEqual(findFirstCourseTitleLocation(content), {
+      kind: "heading",
+      line: 1,
+    });
   });
 });
 
@@ -123,6 +134,54 @@ describe("AdaptationMarkdownView", () => {
       }),
     );
     assert.match(html, /text-2xl|text-3xl/);
+  });
+
+  it("centre et souligne uniquement le premier titre du cours", () => {
+    const html = renderToStaticMarkup(
+      createElement(AdaptationMarkdownView, {
+        content: "## Titre principal\n\nTexte.\n\n## Section suivante",
+        mode: "standard",
+      }),
+    );
+    const firstHeading = html.match(/<h3[^>]*>Titre principal<\/h3>/)?.[0] ?? "";
+    const secondHeading = html.match(/<h3[^>]*>Section suivante<\/h3>/)?.[0] ?? "";
+    assert.match(firstHeading, /text-center/);
+    assert.doesNotMatch(firstHeading, /underline/);
+    assert.doesNotMatch(secondHeading, /text-center/);
+  });
+
+  it("centre le premier titre en gras seul (format FALC courant)", () => {
+    const html = renderToStaticMarkup(
+      createElement(AdaptationMarkdownView, {
+        content: "**La Révolution française**\n\n1. La France est dirigée par **Louis XVI**.",
+        mode: "falc",
+      }),
+    );
+    assert.match(html, /<p[^>]*text-center[^>]*>\s*<strong[^>]*>La Révolution française<\/strong>/);
+    assert.doesNotMatch(html.match(/<p[^>]*text-center[^>]*/)?.[0] ?? "", /underline/);
+    assert.doesNotMatch(html.match(/<strong[^>]*>Louis XVI<\/strong>/)?.[0] ?? "", /text-center/);
+  });
+
+  it("affiche les pictogrammes inline sur les mots en gras (FALC)", () => {
+    const html = renderToStaticMarkup(
+      createElement(AdaptationMarkdownView, {
+        content: "## Le soleil\n\nLe **soleil** chauffe la Terre.",
+        mode: "falc",
+        inlinePictograms: [
+          {
+            id: 7252,
+            keyword: "soleil",
+            label: "soleil",
+            imageUrl: "https://static.arasaac.org/pictograms/7252/7252_500.png",
+            source: "arasaac",
+          },
+        ],
+      }),
+    );
+    assert.ok(html.includes("7252_500.png"));
+    assert.ok(html.includes("pictogramme : soleil"));
+    assert.match(html, /inline-flex items-center[^"]*align-middle/);
+    assert.ok(html.includes(">soleil</strong>"));
   });
 });
 

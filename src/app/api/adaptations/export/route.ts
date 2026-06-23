@@ -5,6 +5,10 @@ import { resolveExportSchema } from "@/lib/pdf/resolve-export-schema";
 import { findAdaptationById } from "@/repositories/adaptations.repository";
 import { buildAdaptationPdfBuffer } from "@/services/adaptation/adaptation-pdf.service";
 import { getOrCreateMindmap } from "@/services/mindmap/mindmap.service";
+import {
+  buildAdaptationExportFilename,
+  contentDispositionAttachment,
+} from "@/lib/pdf/adaptation-export-filename";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -69,13 +73,14 @@ export async function POST(request: Request) {
       schemaPng: parsed.data.schemaPng,
       schemaSvg: parsed.data.schemaSvg,
     });
-    const prefix = isFalc ? "falc" : "cours-adapte";
-    const filename = `${prefix}-${adaptation.id.slice(0, 8)}.pdf`;
+    const filename = buildAdaptationExportFilename(adaptation.document?.title, {
+      falcMode: isFalc,
+    });
 
     return new NextResponse(new Uint8Array(pdf), {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="${filename}"`,
+        "Content-Disposition": contentDispositionAttachment(filename),
       },
     });
   } catch (error) {
