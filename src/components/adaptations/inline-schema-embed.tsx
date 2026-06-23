@@ -63,6 +63,7 @@ export function InlineSchemaEmbed({
       </figcaption>
       <MermaidRenderer
         code={schema.mermaidCode}
+        rootLabel={schema.title}
         enabled={enabled}
         className={cn(
           falcMode

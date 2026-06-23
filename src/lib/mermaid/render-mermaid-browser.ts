@@ -1,23 +1,18 @@
 import { fixTimelineAxisPosition, isTimelineDiagram } from "@/lib/mermaid/fix-timeline-layout";
+import { getMermaidInitializeOptions } from "@/lib/mermaid/mermaid-init-config";
+import { normalizeMindmapRootLabel } from "@/lib/mermaid/normalize-mindmap-root-label";
 import { svgToPngDataUrl } from "@/lib/mermaid/svg-to-png-browser";
 
-function getMermaidTheme(): "default" | "dark" {
-  if (typeof window === "undefined") return "default";
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "default";
-}
-
-export async function renderMermaidToSvgInBrowser(code: string): Promise<string | null> {
-  const trimmed = code.trim();
+export async function renderMermaidToSvgInBrowser(
+  code: string,
+  rootLabel?: string | null,
+): Promise<string | null> {
+  const trimmed = normalizeMindmapRootLabel(code.trim(), rootLabel);
   if (!trimmed) return null;
 
   try {
     const mermaid = (await import("mermaid")).default;
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: getMermaidTheme(),
-      securityLevel: "loose",
-      fontFamily: "Helvetica, Arial, sans-serif",
-    });
+    mermaid.initialize(getMermaidInitializeOptions());
 
     const renderId = `inclusia-export-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const { svg } = await mermaid.render(renderId, trimmed);
@@ -39,8 +34,11 @@ export async function renderMermaidToSvgInBrowser(code: string): Promise<string 
   }
 }
 
-export async function renderMermaidToPngInBrowser(code: string): Promise<string | null> {
-  const svg = await renderMermaidToSvgInBrowser(code);
+export async function renderMermaidToPngInBrowser(
+  code: string,
+  rootLabel?: string | null,
+): Promise<string | null> {
+  const svg = await renderMermaidToSvgInBrowser(code, rootLabel);
   if (!svg) return null;
   return svgToPngDataUrl(svg);
 }

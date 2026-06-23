@@ -44,11 +44,13 @@ export async function prepareSchemaPdfAssetFromPng(
   }
 }
 
+import { prepareMermaidSvgForRasterization } from "@/lib/mermaid/prepare-mermaid-svg-for-rasterization";
+
 export async function prepareSchemaPdfAssetFromSvg(
   svg: string,
   maxWidthPt: number,
 ): Promise<SchemaPdfAsset | null> {
-  const trimmed = svg.trim();
+  const trimmed = prepareMermaidSvgForRasterization(svg.trim());
   if (!trimmed.includes("<svg")) return null;
 
   try {

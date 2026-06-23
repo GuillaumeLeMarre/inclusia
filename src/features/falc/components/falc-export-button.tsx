@@ -19,6 +19,7 @@ export function FalcExportButton({ adaptationId, schema }: FalcExportButtonProps
     try {
       await downloadAdaptationPdf(adaptationId, {
         schemaMermaidCode: schema?.mermaidCode,
+        schemaTitle: schema?.title,
         endpoint: "/api/falc/export",
       });
     } catch (err) {

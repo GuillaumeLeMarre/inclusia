@@ -137,6 +137,7 @@ export function SchemaPanel({
       <CardContent className={loading ? "opacity-60" : undefined}>
         <MermaidRenderer
           code={result.mermaidCode}
+          rootLabel={result.title}
           enabled={active}
           suppressLoadingOverlay={loading}
         />

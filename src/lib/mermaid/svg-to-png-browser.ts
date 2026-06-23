@@ -1,3 +1,8 @@
+import {
+  prepareMermaidSvgForRasterization,
+  findLiveSchemaSvgForExport,
+} from "@/lib/mermaid/prepare-mermaid-svg-for-rasterization";
+
 function parseSvgDimensions(svg: string): { width: number; height: number } {
   const viewBoxMatch = svg.match(/viewBox=["']([^"']+)["']/i);
   if (viewBoxMatch) {
@@ -39,7 +44,10 @@ export async function svgToPngDataUrl(
 ): Promise<string | null> {
   if (typeof window === "undefined" || typeof document === "undefined") return null;
 
-  const normalized = normalizeSvgForRasterization(svg);
+  const liveSvg = findLiveSchemaSvgForExport();
+  const normalized = normalizeSvgForRasterization(
+    prepareMermaidSvgForRasterization(svg, liveSvg),
+  );
   const { width, height } = parseSvgDimensions(normalized);
   const canvasWidth = Math.max(1, Math.round(width * scale));
   const canvasHeight = Math.max(1, Math.round(height * scale));

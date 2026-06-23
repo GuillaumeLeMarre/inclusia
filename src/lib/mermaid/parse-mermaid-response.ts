@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { DiagramType, MermaidGenerationResult } from "@/types/mindmap";
 import { normalizeDiagramType } from "@/lib/mermaid/diagram-types";
 import { detectDiagramType, isValidMermaidStructure, sanitizeMermaidCode } from "@/lib/mermaid/mermaid-utils";
+import { normalizeMindmapRootLabel } from "@/lib/mermaid/normalize-mindmap-root-label";
 
 const mermaidResultSchema = z.object({
   diagramType: z.string(),
@@ -26,7 +27,11 @@ export function cleanJsonResponse(raw: string): string {
 }
 
 function toResult(parsed: z.infer<typeof mermaidResultSchema>): MermaidGenerationResult {
-  const mermaidCode = sanitizeMermaidCode(parsed.mermaidCode);
+  const title = parsed.title.trim().slice(0, 80);
+  const mermaidCode = normalizeMindmapRootLabel(
+    sanitizeMermaidCode(parsed.mermaidCode),
+    title,
+  );
   const diagramType = normalizeDiagramType(parsed.diagramType);
 
   if (!isValidMermaidStructure(mermaidCode)) {
@@ -35,7 +40,7 @@ function toResult(parsed: z.infer<typeof mermaidResultSchema>): MermaidGeneratio
 
   return {
     diagramType,
-    title: parsed.title.trim().slice(0, 80),
+    title,
     mermaidCode,
     explanation: parsed.explanation.trim().slice(0, 300),
   };
@@ -52,10 +57,11 @@ export function parseMermaidAiResponse(raw: string): MermaidGenerationResult | n
     const code = sanitizeMermaidCode(raw);
     if (isValidMermaidStructure(code)) {
       const diagramType = normalizeDiagramType(detectDiagramType(code)) as DiagramType;
+      const title = "Schéma du cours";
       return {
         diagramType,
-        title: "Schéma du cours",
-        mermaidCode: code,
+        title,
+        mermaidCode: normalizeMindmapRootLabel(code, title),
         explanation: "Schéma extrait directement de la réponse IA.",
       };
     }
@@ -82,7 +88,7 @@ export function deserializeMindmapResult(cached: string): MermaidGenerationResul
   return {
     diagramType: normalizeDiagramType(detectDiagramType(code)),
     title: "Schéma du cours",
-    mermaidCode: code,
+    mermaidCode: normalizeMindmapRootLabel(code, "Schéma du cours"),
     explanation: "Schéma enregistré précédemment.",
   };
 }

@@ -5,6 +5,9 @@ import { Loader2, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { fixTimelineAxisPosition, isTimelineDiagram } from "@/lib/mermaid/fix-timeline-layout";
+import { getMermaidInitializeOptions, getMermaidTheme } from "@/lib/mermaid/mermaid-init-config";
+import { centerMindmapRootNodeLabels } from "@/lib/mermaid/center-mindmap-root-label";
+import { normalizeMindmapRootLabel } from "@/lib/mermaid/normalize-mindmap-root-label";
 
 interface MermaidRendererProps {
   code: string;
@@ -13,20 +16,18 @@ interface MermaidRendererProps {
   enabled?: boolean;
   /** Masque le spinner interne (ex. régénération gérée par le parent). */
   suppressLoadingOverlay?: boolean;
+  /** Titre affiché au centre d'une mindmap (remplace « root »). */
+  rootLabel?: string | null;
 }
 
 const ERROR_MESSAGE = "Impossible de générer le schéma.";
-
-function getMermaidTheme(): "default" | "dark" {
-  if (typeof window === "undefined") return "default";
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "default";
-}
 
 export function MermaidRenderer({
   code,
   className,
   enabled = true,
   suppressLoadingOverlay = false,
+  rootLabel,
 }: MermaidRendererProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const renderCounter = useRef(0);
@@ -39,29 +40,27 @@ export function MermaidRenderer({
       return;
     }
 
+    const diagramCode = normalizeMindmapRootLabel(code, rootLabel);
+
     setStatus("loading");
     renderCounter.current += 1;
     const renderId = `inclusia-mmd-${renderCounter.current}`;
 
     try {
       const mermaid = (await import("mermaid")).default;
-      mermaid.initialize({
-        startOnLoad: false,
-        theme: getMermaidTheme(),
-        securityLevel: "loose",
-        fontFamily: "inherit",
-      });
+      mermaid.initialize(getMermaidInitializeOptions(getMermaidTheme()));
 
-      const { svg } = await mermaid.render(renderId, code);
+      const { svg } = await mermaid.render(renderId, diagramCode);
 
       if (!containerRef.current) return;
 
       containerRef.current.innerHTML = svg;
       const svgEl = containerRef.current.querySelector("svg");
       if (svgEl) {
-        if (isTimelineDiagram(code)) {
+        if (isTimelineDiagram(diagramCode)) {
           fixTimelineAxisPosition(svgEl);
         }
+        centerMindmapRootNodeLabels(svgEl);
         svgEl.removeAttribute("height");
         svgEl.style.width = "100%";
         svgEl.style.maxWidth = "100%";
@@ -73,7 +72,7 @@ export function MermaidRenderer({
       console.error("[MermaidRenderer]", err);
       setStatus("error");
     }
-  }, [code, enabled]);
+  }, [code, enabled, rootLabel]);
 
   useEffect(() => {
     if (!enabled) {

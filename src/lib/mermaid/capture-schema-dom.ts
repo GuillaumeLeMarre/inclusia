@@ -1,10 +1,16 @@
+import {
+  prepareMermaidSvgForRasterization,
+  svgLabelsAreReady,
+} from "@/lib/mermaid/prepare-mermaid-svg-for-rasterization";
+
 function serializeSvgElement(svg: SVGSVGElement): string | null {
   if (!svg.querySelector("*")) return null;
   const clone = svg.cloneNode(true) as SVGSVGElement;
   if (!clone.getAttribute("xmlns")) {
     clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
   }
-  return new XMLSerializer().serializeToString(clone);
+  const serialized = new XMLSerializer().serializeToString(clone);
+  return prepareMermaidSvgForRasterization(serialized, svg);
 }
 
 function findSchemaSvgElement(): SVGSVGElement | null {
@@ -22,15 +28,18 @@ function findSchemaSvgElement(): SVGSVGElement | null {
 
 export function captureSchemaSvgFromDom(): string | null {
   const svg = findSchemaSvgElement();
-  if (!svg) return null;
+  if (!svg || !svgLabelsAreReady(svg)) return null;
   return serializeSvgElement(svg);
 }
 
 export async function waitForSchemaSvgFromDom(timeoutMs = 20_000): Promise<string | null> {
   const started = Date.now();
   while (Date.now() - started < timeoutMs) {
-    const svg = captureSchemaSvgFromDom();
-    if (svg) return svg;
+    const svg = findSchemaSvgElement();
+    if (svg && svgLabelsAreReady(svg)) {
+      const serialized = serializeSvgElement(svg);
+      if (serialized) return serialized;
+    }
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
   return null;

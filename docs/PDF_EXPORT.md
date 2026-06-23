@@ -67,9 +67,25 @@ Le premier titre du contenu est détecté automatiquement :
 
 ## Schémas Mermaid
 
-1. **Priorité** : PNG base64 capturé côté client (`schemaPng`)
-2. **Repli client** : SVG brut (`schemaSvg`)
-3. **Repli serveur** : conversion SVG → PNG via `sharp` (`schema-pdf-image.ts`)
+1. **Priorité** : PNG base64 capturé côté client (`schemaPng`) — SVG du DOM ou rendu Mermaid, puis conversion canvas.
+2. **Repli client** : SVG brut (`schemaSvg`).
+3. **Repli serveur** : conversion SVG → PNG via `sharp` (`schema-pdf-image.ts`).
+
+Mermaid est initialisé avec `htmlLabels: false` (labels SVG natifs, pas `foreignObject`). Avant rasterisation, `prepare-mermaid-svg-for-rasterization.ts` convertit les anciens labels HTML en `<text>`, inline les couleurs CSS des mindmaps et centre le libellé du nœud central.
+
+### Nœud central des mindmaps
+
+Le libellé « root » est remplacé par le **titre du schéma** (`normalize-mindmap-root-label.ts`). Les titres longs sont **abrégés** pour tenir dans la bulle centrale (`abbreviate-mindmap-root-label.ts`, max ~18 caractères : mots raccourcis, puis initiales).
+
+| Étape | Fichier |
+|-------|---------|
+| Normalisation du code Mermaid | `normalize-mindmap-root-label.ts` |
+| Abréviation du titre | `abbreviate-mindmap-root-label.ts` |
+| Centrage du texte dans le nœud | `center-mindmap-root-label.ts` |
+| Affichage web | `MermaidRenderer.tsx` (`rootLabel`) |
+| Export PNG/PDF | `prepare-mermaid-svg-for-rasterization.ts`, `svg-to-png-browser.ts` |
+
+Le titre complet reste visible **au-dessus** du schéma (légende / panneau) ; seul le libellé **dans la bulle centrale** est abrégé si nécessaire.
 
 Le schéma est inséré comme bloc `schema` dans le PDF avec le libellé du mindmap ou « Schéma du cours ».
 
@@ -87,6 +103,12 @@ Quand `falcMode: true` :
 
 ```
 src/
+├── lib/mermaid/
+│   ├── mermaid-init-config.ts              # htmlLabels: false
+│   ├── normalize-mindmap-root-label.ts     # Titre à la place de « root »
+│   ├── abbreviate-mindmap-root-label.ts    # Titres longs → abréviations
+│   ├── center-mindmap-root-label.ts        # Centrage nœud central
+│   └── prepare-mermaid-svg-for-rasterization.ts
 ├── lib/pdf/
 │   ├── parse-markdown-for-pdf.ts    # Parsing + isCourseTitle
 │   ├── markdown-pdf-renderer.ts     # Rendu jsPDF
@@ -113,7 +135,9 @@ Fichiers concernés :
 - `tests/unit/markdown-pdf.test.ts` — parsing, listes numérotées, titre de cours, génération PDF
 - `tests/unit/adaptation-pdf.test.ts` — buffers FALC / standard
 - `tests/unit/adaptation-renderer.test.ts` — titre centré HTML (## et gras seul)
-- `tests/unit/adaptation-export-filename.test.ts` — nom de fichier export
+- `tests/unit/prepare-mermaid-svg.test.ts` — rasterisation SVG Mermaid
+- `tests/unit/normalize-mindmap-root-label.test.ts` — titre central mindmap
+- `tests/unit/abbreviate-mindmap-root-label.test.ts` — abréviations
 
 ## API
 

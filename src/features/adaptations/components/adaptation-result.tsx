@@ -64,7 +64,10 @@ export function AdaptationResult({
         documentTitle={documentTitle}
       />
 
-      <SchemaExportRenderer mermaidCode={schemaState.result?.mermaidCode} />
+      <SchemaExportRenderer
+        mermaidCode={schemaState.result?.mermaidCode}
+        rootLabel={schemaState.result?.title}
+      />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         {isFalc && adaptation.falc_score != null && (

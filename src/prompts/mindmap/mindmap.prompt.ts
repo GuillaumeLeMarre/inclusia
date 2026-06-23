@@ -8,7 +8,7 @@ Règles :
 - Utilise le diagramType indiqué par l'utilisateur sauf si manifestement incorrect.
 - Max 20 nœuds, libellés courts, mots simples, pas de numéros visibles (1, 2, 3).
 - timeline → syntaxe Mermaid timeline (format : ANNEE : description courte, une entrée par date)
-- mindmap → syntaxe Mermaid mindmap
+- mindmap → syntaxe Mermaid mindmap ; nœud central : root(({titre du schéma})) — ne jamais afficher « root » comme libellé visible
 - graph → graph TD
 - flowchart → flowchart TD
 - concept_map → graph TD avec liens nommés : A -- "relation" --> B

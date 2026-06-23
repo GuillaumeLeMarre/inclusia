@@ -11,6 +11,7 @@ import {
   deserializeMindmapResult,
   serializeMindmapResult,
 } from "@/lib/mermaid/parse-mermaid-response";
+import { normalizeMindmapRootLabel } from "@/lib/mermaid/normalize-mindmap-root-label";
 import { generateMermaidFromCourse } from "@/services/ai/mindmap.ai.service";
 import { generateDemoMermaid } from "@/services/mindmap/demo-mermaid.service";
 import {
@@ -85,7 +86,12 @@ export async function getOrCreateMindmap(
     const cached = adaptation.mindmap_mermaid?.trim();
     if (cached) {
       const stored = deserializeMindmapResult(cached);
-      if (stored) return stored;
+      if (stored) {
+        return {
+          ...stored,
+          mermaidCode: normalizeMindmapRootLabel(stored.mermaidCode, stored.title),
+        };
+      }
     }
   }
 

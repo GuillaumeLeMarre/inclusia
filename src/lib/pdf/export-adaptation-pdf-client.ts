@@ -8,6 +8,7 @@ import { parseContentDispositionFilename } from "@/lib/pdf/adaptation-export-fil
 
 interface DownloadAdaptationPdfOptions {
   schemaMermaidCode?: string | null;
+  schemaTitle?: string | null;
   fetchSchemaIfMissing?: boolean;
   endpoint?: string;
 }
@@ -41,6 +42,7 @@ async function svgToExportPayload(svg: string): Promise<SchemaImagePayload | nul
 async function resolveSchemaImagePayload(
   adaptationId: string,
   schemaMermaidCode?: string | null,
+  schemaTitle?: string | null,
   fetchSchemaIfMissing = true,
 ): Promise<SchemaImagePayload | null> {
   const domSvg = captureSchemaSvgFromDom() ?? await waitForSchemaSvgFromDom();
@@ -55,13 +57,13 @@ async function resolveSchemaImagePayload(
   }
   if (!mermaidCode) return null;
 
-  const renderedSvg = await renderMermaidToSvgInBrowser(mermaidCode);
+  const renderedSvg = await renderMermaidToSvgInBrowser(mermaidCode, schemaTitle);
   if (renderedSvg) {
     const fromRender = await svgToExportPayload(renderedSvg);
     if (fromRender) return fromRender;
   }
 
-  const schemaPng = await renderMermaidToPngInBrowser(mermaidCode);
+  const schemaPng = await renderMermaidToPngInBrowser(mermaidCode, schemaTitle);
   if (schemaPng) return { schemaPng };
 
   return null;
@@ -74,6 +76,7 @@ export async function downloadAdaptationPdf(
   const schemaImage = await resolveSchemaImagePayload(
     adaptationId,
     options.schemaMermaidCode,
+    options.schemaTitle,
     options.fetchSchemaIfMissing !== false,
   );
 

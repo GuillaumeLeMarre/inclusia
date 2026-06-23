@@ -35,6 +35,7 @@ export function AdaptationExportButton({
 
       await downloadAdaptationPdf(adaptationId, {
         schemaMermaidCode: mermaidCode,
+        schemaTitle: schema?.title,
       });
     } catch (err) {
       console.error(err);
