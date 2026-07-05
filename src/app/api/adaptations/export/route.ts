@@ -1,41 +1,11 @@
 import { NextResponse } from "next/server";
 import { handleApiError, requireTeacher } from "@/lib/auth/require-teacher";
 import { adaptationExportSchema } from "@/schemas/adaptation-export.schema";
-import { resolveExportSchema } from "@/lib/pdf/resolve-export-schema";
-import { findAdaptationById } from "@/repositories/adaptations.repository";
-import { buildAdaptationPdfBuffer } from "@/services/adaptation/adaptation-pdf.service";
-import { getOrCreateMindmap } from "@/services/mindmap/mindmap.service";
-import {
-  buildAdaptationExportFilename,
-  contentDispositionAttachment,
-} from "@/lib/pdf/adaptation-export-filename";
+import { contentDispositionAttachment } from "@/lib/pdf/adaptation-export-filename";
+import { ensureAdaptationPdfStored } from "@/services/adaptation/adaptation-pdf-storage.service";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
-
-function getExportContent(
-  adaptation: Awaited<ReturnType<typeof findAdaptationById>>,
-): string {
-  if (adaptation.adaptation_level === "falc" && adaptation.falc_content?.trim()) {
-    return adaptation.falc_content;
-  }
-  return adaptation.adapted_content?.trim() ?? "";
-}
-
-async function resolveSchemaForExport(
-  supabase: Awaited<ReturnType<typeof requireTeacher>>["supabase"],
-  teacherId: string,
-  adaptation: Awaited<ReturnType<typeof findAdaptationById>>,
-) {
-  const cached = resolveExportSchema(adaptation);
-  if (cached?.mermaidCode) return cached;
-
-  try {
-    return await getOrCreateMindmap(supabase, teacherId, adaptation.id);
-  } catch {
-    return null;
-  }
-}
 
 export async function POST(request: Request) {
   try {
@@ -50,37 +20,21 @@ export async function POST(request: Request) {
       );
     }
 
-    const adaptation = await findAdaptationById(
+    const payload = await ensureAdaptationPdfStored(
       supabase,
       teacherId,
       parsed.data.adaptationId,
+      {
+        schemaPng: parsed.data.schemaPng,
+        schemaSvg: parsed.data.schemaSvg,
+      },
     );
 
-    const content = getExportContent(adaptation);
-    if (!content) {
-      return NextResponse.json(
-        { error: "Aucun contenu adapté à exporter." },
-        { status: 400 },
-      );
-    }
-
-    const isFalc = adaptation.adaptation_level === "falc";
-    const title = adaptation.document?.title ?? "Cours adapté";
-    const schema = await resolveSchemaForExport(supabase, teacherId, adaptation);
-    const pdf = await buildAdaptationPdfBuffer(title, content, {
-      falcMode: isFalc,
-      schema,
-      schemaPng: parsed.data.schemaPng,
-      schemaSvg: parsed.data.schemaSvg,
-    });
-    const filename = buildAdaptationExportFilename(adaptation.document?.title, {
-      falcMode: isFalc,
-    });
-
-    return new NextResponse(new Uint8Array(pdf), {
+    return new NextResponse(new Uint8Array(payload.pdf), {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": contentDispositionAttachment(filename),
+        "Content-Disposition": contentDispositionAttachment(payload.filename),
+        "Cache-Control": payload.fromCache ? "private, max-age=3600" : "private, no-store",
       },
     });
   } catch (error) {

@@ -30,6 +30,7 @@ const checks = [
   { name: "learner_profiles", table: "learner_profiles" },
   { name: "pedagogical_profiles (dimensions)", table: "pedagogical_profiles", select: "pedagogical_objectives" },
   { name: "adaptations (production_options)", table: "adaptations", select: "production_options" },
+  { name: "adaptations (pdf_storage_path)", table: "adaptations", select: "pdf_storage_path" },
 ];
 
 let failed = 0;

@@ -236,3 +236,18 @@ export async function deleteAdaptation(client: Client, teacherId: string, adapta
 
   if (error) throw error;
 }
+
+export async function updateAdaptationPdfPath(
+  client: Client,
+  teacherId: string,
+  adaptationId: string,
+  pdfStoragePath: string | null,
+) {
+  const { error } = await client
+    .from("adaptations")
+    .update({ pdf_storage_path: pdfStoragePath })
+    .eq("id", adaptationId)
+    .eq("teacher_id", teacherId);
+
+  if (error) throw error;
+}

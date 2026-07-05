@@ -32,6 +32,17 @@ export function contentDispositionAttachment(filename: string): string {
   return `attachment; filename="${asciiFallback}"; filename*=UTF-8''${encodeURIComponent(filename)}`;
 }
 
+export function contentDispositionInline(filename: string): string {
+  const asciiFallback =
+    filename
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^\x20-\x7E]/g, "_")
+      .trim() || "export.pdf";
+
+  return `inline; filename="${asciiFallback}"; filename*=UTF-8''${encodeURIComponent(filename)}`;
+}
+
 export function parseContentDispositionFilename(header: string | null): string | null {
   if (!header) return null;
 

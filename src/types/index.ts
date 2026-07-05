@@ -99,6 +99,7 @@ export interface Adaptation {
   adapted_instructions: string | null;
   mindmap: MindmapData | null;
   mindmap_mermaid: string | null;
+  pdf_storage_path: string | null;
   audio_script: string | null;
   processing_time_ms: number | null;
   is_demo: boolean;

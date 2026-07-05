@@ -17,11 +17,7 @@ export function FalcExportButton({ adaptationId, schema }: FalcExportButtonProps
   async function handleExport() {
     setLoading(true);
     try {
-      await downloadAdaptationPdf(adaptationId, {
-        schemaMermaidCode: schema?.mermaidCode,
-        schemaTitle: schema?.title,
-        endpoint: "/api/falc/export",
-      });
+      await downloadAdaptationPdf(adaptationId);
     } catch (err) {
       console.error(err);
       alert(err instanceof Error ? err.message : "Export PDF impossible");

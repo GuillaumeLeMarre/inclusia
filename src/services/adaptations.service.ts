@@ -1,6 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { deleteAdaptation, findAdaptationsByTeacher } from "@/repositories/adaptations.repository";
+import {
+  deleteAdaptation,
+  findAdaptationById,
+  findAdaptationsByTeacher,
+} from "@/repositories/adaptations.repository";
+import { deleteStoredAdaptationPdf } from "@/services/adaptation/adaptation-pdf-storage.service";
 import { formatDate } from "@/lib/utils";
 import { getProfileName } from "@/lib/constants/profiles";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -53,5 +58,11 @@ export async function deleteTeacherAdaptation(
     throw new Error("Suppression indisponible en mode démo");
   }
 
+  const adaptation = await findAdaptationById(client, teacherId, adaptationId);
+  if (!adaptation) {
+    throw new Error("Adaptation introuvable");
+  }
+
+  await deleteStoredAdaptationPdf(adaptation.pdf_storage_path);
   await deleteAdaptation(client, teacherId, adaptationId);
 }

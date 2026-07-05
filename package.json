@@ -15,6 +15,7 @@
     "supabase:db:reset": "supabase db reset",
     "supabase:check": "node --env-file=.env.local scripts/check-supabase.mjs",
     "db:verify": "node --env-file=.env.local scripts/verify-db-schema.mjs",
+    "db:setup-pdf-storage": "node --env-file=.env.local scripts/setup-adaptation-pdf-storage.mjs",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:report": "playwright show-report",

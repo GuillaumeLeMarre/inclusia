@@ -6,6 +6,8 @@ import {
   findProfileById,
 } from "@/repositories/profiles.repository";
 import { createAdaptation } from "@/repositories/adaptations.repository";
+import { ensureAdaptationPdfStored } from "@/services/adaptation/adaptation-pdf-storage.service";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { buildAdaptationPrompt } from "@/prompts/prompt-builder";
 import {
   generateDemoAdaptation,
@@ -282,5 +284,14 @@ export async function runAdaptationEngine(
     teacherProfileId,
     profileSource,
     productionOptions: savedProductionOptions,
+  }).then(async (adaptation) => {
+    if (!isDemo && isSupabaseConfigured()) {
+      try {
+        await ensureAdaptationPdfStored(client, input.teacherId, adaptation.id);
+      } catch (err) {
+        console.warn("[adaptation-pdf] Génération PDF initiale échouée:", err);
+      }
+    }
+    return adaptation;
   });
 }

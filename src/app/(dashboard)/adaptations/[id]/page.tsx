@@ -34,8 +34,8 @@ export default async function AdaptationDetailPage({ params }: PageProps) {
   return (
     <>
       <AppHeader
-        title="Support adapté"
-        description={adaptation.document?.title ?? "Adaptation générée"}
+        title="Support adapté (PDF)"
+        description={adaptation.document?.title ?? "Document généré au format PDF"}
         action={<AdaptationDetailHeaderActions />}
       />
       <PageContainer>
