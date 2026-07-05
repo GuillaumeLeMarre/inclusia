@@ -1,7 +1,13 @@
 import type { ResolvedPedagogicalProfile, ProfileOptions } from "@/types/pedagogical-profile";
+import { DEFAULT_PROFILE_OPTIONS } from "@/types/pedagogical-profile";
 import type { LearnerProfile } from "@/types";
-import { ADAPTATION_OUTPUT_SCHEMA, ADAPTATION_SYSTEM_PROMPT } from "@/prompts/adaptation/system.prompt";
+import type { PedagogicalDimensions, TeacherCustomDimensions } from "@/types/pedagogical-dimensions";
+import { strategyFromDimensions, strategyFromTeacherDimensions } from "@/lib/profiles/strategy-columns";
+import { mergeWithTeacherCustomization } from "@/services/profiles/strategy-merge.service";
+import { ADAPTATION_OUTPUT_SCHEMA } from "@/prompts/adaptation/system.prompt";
+import { PEDAGOGICAL_ADAPTATION_SYSTEM_PROMPT } from "@/prompts/adaptation/pedagogical-profile.prompt";
 import { FALC_SIMPLIFIED_LEVEL_HINT } from "@/prompts/falc/falc-system.prompt";
+import { strategyToPromptBlock } from "@/services/profiles/strategy-prompt.service";
 
 interface BuildProfilePromptInput {
   resolved: ResolvedPedagogicalProfile;
@@ -26,28 +32,24 @@ function formatOptionsBlock(options: ProfileOptions): string {
   ].join(", ");
 }
 
-function buildSystemPrompt(resolved: ResolvedPedagogicalProfile): string {
+function buildProfileStrategyPromptBlock(resolved: ResolvedPedagogicalProfile): string {
+  const strategyBlock = strategyToPromptBlock(resolved.mergedStrategy);
+  const multiHint =
+    resolved.slugs.length > 1
+      ? `Profils combinés (fusion par priorité) : ${resolved.slugs.join(" + ")}`
+      : "";
+
   const parts = [
-    ADAPTATION_SYSTEM_PROMPT,
-    "",
     `Profil pédagogique : ${resolved.name}`,
-    resolved.systemPrompt,
+    multiHint,
+    strategyBlock,
   ];
 
-  if (resolved.source === "TEACHER_PROFILE") {
-    parts.push("", "Règles système :", resolved.pedagogicalRules);
-    parts.push("", "Options :", formatOptionsBlock(resolved.options));
-    if (resolved.customRules?.trim()) {
-      parts.push("", "Règles personnalisées :", resolved.customRules.trim());
-    }
-    if (resolved.customPrompt?.trim()) {
-      parts.push("", "Prompt personnalisé enseignant :", resolved.customPrompt.trim());
-    }
-  } else {
-    parts.push("", "Règles pédagogiques :", resolved.pedagogicalRules);
-  }
+  return parts.filter(Boolean).join("\n\n");
+}
 
-  return parts.join("\n");
+function buildSystemPrompt(resolved: ResolvedPedagogicalProfile): string {
+  return [PEDAGOGICAL_ADAPTATION_SYSTEM_PROMPT, "", buildProfileStrategyPromptBlock(resolved)].join("\n");
 }
 
 function buildUserPrompt(input: BuildProfilePromptInput): string {
@@ -69,32 +71,87 @@ function buildUserPrompt(input: BuildProfilePromptInput): string {
     resolved.adaptationLevel === "simplified"
       ? `\n${FALC_SIMPLIFIED_LEVEL_HINT}\n`
       : resolved.adaptationLevel === "falc"
-        ? "\nNiveau FALC : une version FALC complète sera produite après adaptation.\n"
+        ? "\nNiveau FALC : produire une version FALC complète. Viser un score FALC élevé.\n"
         : "";
 
-  const profileUserHint = resolved.userPrompt.trim()
-    ? `\nConsignes profil :\n${resolved.userPrompt.trim()}\n`
-    : "";
+  const userParts: string[] = [];
 
-  const optionsBlock =
-    resolved.source !== "TEACHER_PROFILE"
-      ? `\nOptions :\n${formatOptionsBlock(resolved.options)}\n`
-      : "";
+  if (resolved.customPrompt?.trim()) {
+    userParts.push("Personnalisation enseignant :", resolved.customPrompt.trim(), "");
+  }
 
-  return `Document : "${documentTitle}"
-${learnerBlock}
-${profileUserHint}${optionsBlock}
-${preferencesBlock}
-${levelBlock}
-IMPORTANT : Ne jamais inventer ni utiliser de nom complet, de diagnostic médical ou de données nominatives.
+  userParts.push(
+    `Document : "${documentTitle}"`,
+    learnerBlock,
+    preferencesBlock,
+    levelBlock,
+    "",
+    "Contenus à générer :",
+    formatOptionsBlock(resolved.options),
+    "",
+    "IMPORTANT : Ne jamais inventer ni utiliser de nom complet, de diagnostic médical ou de données nominatives.",
+    "",
+    "Contenu source :",
+    `"""`,
+    sourceText.slice(0, 12000),
+    `"""`,
+    "",
+    "Produis le JSON suivant :",
+    ADAPTATION_OUTPUT_SCHEMA,
+  );
 
-Contenu source :
-"""
-${sourceText.slice(0, 12000)}
-"""
+  return userParts.filter(Boolean).join("\n");
+}
 
-Produis le JSON suivant :
-${ADAPTATION_OUTPUT_SCHEMA}`;
+export function buildProfileSystemPromptPreview(input: {
+  name: string;
+  dimensions: PedagogicalDimensions;
+  avoid?: string[];
+}): string {
+  const strategy = strategyFromDimensions(input.dimensions, input.avoid ?? []);
+  const resolved: ResolvedPedagogicalProfile = {
+    source: "SYSTEM_PROFILE",
+    profileId: "",
+    slug: null,
+    slugs: [],
+    name: input.name.trim() || "Profil sans nom",
+    systemPrompt: "",
+    userPrompt: "",
+    pedagogicalRules: "",
+    mergedStrategy: strategy,
+    customPrompt: null,
+    customRules: null,
+    adaptationLevel: "standard",
+    options: DEFAULT_PROFILE_OPTIONS,
+  };
+  return buildProfileStrategyPromptBlock(resolved);
+}
+
+export function buildTeacherProfileSystemPromptPreview(input: {
+  name: string;
+  sourceDimensions: PedagogicalDimensions;
+  teacherDimensions: TeacherCustomDimensions;
+}): string {
+  const systemStrategy = strategyFromDimensions(input.sourceDimensions);
+  const teacherStrategy = strategyFromTeacherDimensions(input.teacherDimensions);
+  const merged = mergeWithTeacherCustomization(systemStrategy, null, teacherStrategy);
+
+  const resolved: ResolvedPedagogicalProfile = {
+    source: "TEACHER_PROFILE",
+    profileId: "",
+    slug: null,
+    slugs: [],
+    name: input.name.trim() || "Profil sans nom",
+    systemPrompt: "",
+    userPrompt: "",
+    pedagogicalRules: "",
+    mergedStrategy: merged,
+    customPrompt: null,
+    customRules: null,
+    adaptationLevel: "standard",
+    options: DEFAULT_PROFILE_OPTIONS,
+  };
+  return buildProfileStrategyPromptBlock(resolved);
 }
 
 export function buildProfileAdaptationPrompt(input: BuildProfilePromptInput) {
@@ -104,5 +161,7 @@ export function buildProfileAdaptationPrompt(input: BuildProfilePromptInput) {
     profileSource: input.resolved.source,
     adaptationLevel: input.resolved.adaptationLevel,
     options: input.resolved.options,
+    mergedStrategy: input.resolved.mergedStrategy,
+    profileSlugs: input.resolved.slugs,
   };
 }

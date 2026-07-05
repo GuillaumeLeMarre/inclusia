@@ -81,6 +81,9 @@ export interface Adaptation {
   profile_id: string;
   document_id: string;
   profile_slugs: string[];
+  pedagogical_profile_slugs: string[];
+  adaptation_quality_score: number | null;
+  production_options: import("@/types/pedagogical-profile").ProfileOptions;
   status: AdaptationStatus;
   adaptation_level: import("@/types/adaptation-level").AdaptationLevel;
   falc_score: number | null;

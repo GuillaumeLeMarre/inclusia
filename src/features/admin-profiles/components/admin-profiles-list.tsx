@@ -8,17 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import type { PedagogicalProfile } from "@/types/pedagogical-profile";
-
-const CATEGORIES = [
-  { value: "", label: "Toutes" },
-  { value: "learning", label: "Apprentissage" },
-  { value: "motor", label: "Moteur" },
-  { value: "language", label: "Langage" },
-  { value: "attention", label: "Attention" },
-  { value: "social", label: "Social" },
-  { value: "sensory", label: "Sensoriel" },
-  { value: "accessibility", label: "Accessibilité" },
-];
+import {
+  getProfileCategoryLabel,
+  PROFILE_CATEGORY_FILTER_OPTIONS,
+} from "@/types/pedagogical-profile-category";
 
 interface AdminProfilesListProps {
   profiles: PedagogicalProfile[];
@@ -54,8 +47,8 @@ export function AdminProfilesList({ profiles }: AdminProfilesListProps) {
           value={category}
           onChange={(e) => setCategory(e.target.value)}
         >
-          {CATEGORIES.map((c) => (
-            <option key={c.value} value={c.value}>{c.label}</option>
+          {PROFILE_CATEGORY_FILTER_OPTIONS.map((c) => (
+            <option key={c.value || "all"} value={c.value}>{c.label}</option>
           ))}
         </select>
         <Link href="/admin/profiles/new">
@@ -68,7 +61,7 @@ export function AdminProfilesList({ profiles }: AdminProfilesListProps) {
           <thead className="border-b bg-slate-50">
             <tr>
               <th className="px-4 py-3 font-semibold">Nom</th>
-              <th className="px-4 py-3 font-semibold">Slug</th>
+              <th className="px-4 py-3 font-semibold">Code profil</th>
               <th className="px-4 py-3 font-semibold">Catégorie</th>
               <th className="px-4 py-3 font-semibold">État</th>
               <th className="px-4 py-3 font-semibold">Actions</th>
@@ -79,7 +72,9 @@ export function AdminProfilesList({ profiles }: AdminProfilesListProps) {
               <tr key={profile.id} className="border-b last:border-0 hover:bg-slate-50/50">
                 <td className="px-4 py-3 font-medium">{profile.name}</td>
                 <td className="px-4 py-3 text-slate-600">{profile.slug}</td>
-                <td className="px-4 py-3"><Badge variant="secondary">{profile.category}</Badge></td>
+                <td className="px-4 py-3">
+                  <Badge variant="secondary">{getProfileCategoryLabel(profile.category)}</Badge>
+                </td>
                 <td className="px-4 py-3">
                   <Badge variant={profile.is_active ? "default" : "outline"}>
                     {profile.is_active ? "Actif" : "Inactif"}

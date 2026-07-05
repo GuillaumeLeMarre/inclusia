@@ -9,32 +9,13 @@ import { findTeacherProfiles } from "@/repositories/teacher-profiles.repository"
 import { createClient } from "@/lib/supabase/server";
 import { getDemoProfiles } from "@/services/demo/demo-data.service";
 import type { PedagogicalProfile } from "@/types/pedagogical-profile";
-import { getFallbackProfiles } from "@/services/profiles/fallback-profile.service";
+import { getFallbackProfiles, fallbackSeedsAsProfiles } from "@/services/profiles/fallback-profile.service";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-
-function fallbackAsProfiles(): PedagogicalProfile[] {
-  return getFallbackProfiles().map((p, index) => ({
-    id: `fallback:${p.slug}`,
-    slug: p.slug,
-    name: p.name,
-    category: p.category,
-    description: p.description,
-    system_prompt: p.system_prompt,
-    user_prompt: p.user_prompt,
-    pedagogical_rules: p.pedagogical_rules,
-    adaptation_level: p.adaptation_level,
-    options: p.options,
-    is_active: p.is_active,
-    sort_order: p.sort_order ?? index,
-    created_at: "",
-    updated_at: "",
-  }));
-}
 
 export default async function NewAdaptationPage() {
   let profiles = getDemoProfiles();
   let documents = await getDocuments();
-  let systemProfiles: PedagogicalProfile[] = fallbackAsProfiles();
+  let systemProfiles: PedagogicalProfile[] = fallbackSeedsAsProfiles();
   let teacherProfiles: Awaited<ReturnType<typeof findTeacherProfiles>> = [];
 
   if (isSupabaseConfigured()) {

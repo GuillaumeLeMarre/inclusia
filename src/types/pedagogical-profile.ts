@@ -1,4 +1,10 @@
 import type { AdaptationLevel } from "@/types/adaptation-level";
+import type { PedagogicalStrategy } from "@/types/pedagogical-strategy";
+import { EMPTY_PEDAGOGICAL_STRATEGY } from "@/types/pedagogical-strategy";
+import type {
+  PedagogicalDimensions,
+  TeacherCustomDimensions,
+} from "@/types/pedagogical-dimensions";
 
 export interface ProfileOptions {
   generate_summary: boolean;
@@ -18,7 +24,7 @@ export const DEFAULT_PROFILE_OPTIONS: ProfileOptions = {
 
 export type ProfileSource = "TEACHER_PROFILE" | "SYSTEM_PROFILE" | "FALLBACK_PROFILE";
 
-export interface PedagogicalProfile {
+export interface PedagogicalProfile extends PedagogicalDimensions {
   id: string;
   slug: string;
   name: string;
@@ -27,6 +33,8 @@ export interface PedagogicalProfile {
   system_prompt: string;
   user_prompt: string;
   pedagogical_rules: string;
+  /** Stratégie dérivée (merge / prompt). */
+  pedagogical_strategy: PedagogicalStrategy;
   adaptation_level: AdaptationLevel;
   options: ProfileOptions;
   is_active: boolean;
@@ -35,7 +43,7 @@ export interface PedagogicalProfile {
   updated_at: string;
 }
 
-export interface PedagogicalProfileVersion {
+export interface PedagogicalProfileVersion extends PedagogicalDimensions {
   id: string;
   profile_id: string;
   version: number;
@@ -46,6 +54,7 @@ export interface PedagogicalProfileVersion {
   system_prompt: string;
   user_prompt: string;
   pedagogical_rules: string;
+  pedagogical_strategy: PedagogicalStrategy;
   adaptation_level: AdaptationLevel;
   options: ProfileOptions;
   is_active: boolean;
@@ -55,7 +64,7 @@ export interface PedagogicalProfileVersion {
   created_at: string;
 }
 
-export interface TeacherProfile {
+export interface TeacherProfile extends TeacherCustomDimensions {
   id: string;
   teacher_id: string;
   source_profile_id: string | null;
@@ -63,6 +72,7 @@ export interface TeacherProfile {
   description: string | null;
   custom_prompt: string | null;
   custom_rules: string | null;
+  custom_strategy: PedagogicalStrategy;
   adaptation_level: AdaptationLevel;
   options: ProfileOptions;
   is_active: boolean;
@@ -70,7 +80,7 @@ export interface TeacherProfile {
   updated_at: string;
 }
 
-export interface TeacherProfileVersion {
+export interface TeacherProfileVersion extends TeacherCustomDimensions {
   id: string;
   profile_id: string;
   version: number;
@@ -79,6 +89,7 @@ export interface TeacherProfileVersion {
   description: string | null;
   custom_prompt: string | null;
   custom_rules: string | null;
+  custom_strategy: PedagogicalStrategy;
   adaptation_level: AdaptationLevel;
   options: ProfileOptions;
   is_active: boolean;
@@ -91,17 +102,19 @@ export interface ResolvedPedagogicalProfile {
   source: ProfileSource;
   profileId: string;
   slug: string | null;
+  slugs: string[];
   name: string;
   systemPrompt: string;
   userPrompt: string;
   pedagogicalRules: string;
+  mergedStrategy: PedagogicalStrategy;
   customPrompt: string | null;
   customRules: string | null;
   adaptationLevel: AdaptationLevel;
   options: ProfileOptions;
 }
 
-export interface FallbackPedagogicalProfileSeed {
+export interface FallbackPedagogicalProfileSeed extends PedagogicalDimensions {
   slug: string;
   name: string;
   category: string;
@@ -109,8 +122,14 @@ export interface FallbackPedagogicalProfileSeed {
   system_prompt: string;
   user_prompt: string;
   pedagogical_rules: string;
+  /** Legacy : utilisé si les colonnes plates sont absentes du JSON. */
+  pedagogical_strategy?: PedagogicalStrategy;
   adaptation_level: AdaptationLevel;
   options: ProfileOptions;
   is_active: boolean;
   sort_order: number;
+}
+
+export function emptyStrategy(): PedagogicalStrategy {
+  return { ...EMPTY_PEDAGOGICAL_STRATEGY, avoid: [...(EMPTY_PEDAGOGICAL_STRATEGY.avoid ?? [])] };
 }

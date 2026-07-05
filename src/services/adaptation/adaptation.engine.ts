@@ -19,8 +19,11 @@ import {
   resolvePedagogicalProfile,
 } from "@/services/profiles/profile-resolver.service";
 import { buildProfileAdaptationPrompt } from "@/services/profiles/profile-prompt-builder.service";
+import { computeAdaptationQualityScore } from "@/services/profiles/adaptation-quality-score.service";
 import type { AdaptationLevel } from "@/types/adaptation-level";
-import type { ProfileSource } from "@/types/pedagogical-profile";
+import { emptyStrategy } from "@/types/pedagogical-profile";
+import type { ProfileOptions, ProfileSource } from "@/types/pedagogical-profile";
+import { DEFAULT_PROFILE_OPTIONS } from "@/types/pedagogical-profile";
 
 export interface RunAdaptationInput {
   teacherId: string;
@@ -28,10 +31,25 @@ export interface RunAdaptationInput {
   documentId: string;
   teacherProfileId?: string;
   pedagogicalProfileId?: string;
+  pedagogicalProfileIds?: string[];
   pedagogicalProfileSlug?: string;
+  pedagogicalProfileSlugs?: string[];
   profileSlugs: string[];
   adaptationLevel?: AdaptationLevel;
+  productionOptions?: ProfileOptions;
   generatePictograms?: boolean;
+}
+
+function resolveProductionOptions(
+  adaptationLevel: AdaptationLevel,
+  fromProfile?: ProfileOptions,
+  fromRequest?: ProfileOptions,
+): ProfileOptions {
+  const base = fromRequest ?? fromProfile ?? DEFAULT_PROFILE_OPTIONS;
+  return {
+    ...base,
+    generate_falc: adaptationLevel === "falc" ? true : base.generate_falc,
+  };
 }
 
 export async function runAdaptationEngine(
@@ -56,20 +74,34 @@ export async function runAdaptationEngine(
   let teacherProfileId: string | null = null;
   let adaptationLevel = input.adaptationLevel ?? "standard";
   let slugs = input.profileSlugs;
+  let mergedStrategy = emptyStrategy();
+  let pedagogicalProfileSlugs: string[] = [];
   let system: string;
   let user: string;
+  let savedProductionOptions = resolveProductionOptions(
+    adaptationLevel,
+    DEFAULT_PROFILE_OPTIONS,
+    input.productionOptions,
+  );
 
   const usesPedagogicalProfile =
     input.teacherProfileId
     || input.pedagogicalProfileId
-    || input.pedagogicalProfileSlug;
+    || input.pedagogicalProfileSlug
+    || (input.pedagogicalProfileSlugs?.length ?? 0) > 0
+    || (input.pedagogicalProfileIds?.length ?? 0) > 0;
 
   if (usesPedagogicalProfile) {
     try {
       const resolved = await resolvePedagogicalProfile(client, {
         teacherProfileId: input.teacherProfileId,
         pedagogicalProfileId: input.pedagogicalProfileId,
+        pedagogicalProfileIds: input.pedagogicalProfileIds,
         slug: input.pedagogicalProfileSlug,
+        slugs: [
+          ...(input.pedagogicalProfileSlugs ?? []),
+          ...input.profileSlugs,
+        ],
         teacherId: input.teacherId,
       });
 
@@ -82,16 +114,28 @@ export async function runAdaptationEngine(
         adaptationLevel = resolved.adaptationLevel;
       }
 
-      if (resolved.slug) {
-        slugs = [resolved.slug];
+      slugs = resolved.slugs.length > 0
+        ? resolved.slugs
+        : resolved.slug
+          ? [resolved.slug]
+          : slugs;
+      pedagogicalProfileSlugs = slugs;
+      mergedStrategy = resolved.mergedStrategy;
+
+      if (adaptationLevel === "falc" && !slugs.includes("falc")) {
+        slugs = [...slugs, "falc"];
+        pedagogicalProfileSlugs = slugs;
       }
 
-      if (adaptationLevel === "falc" && resolved.slug && !slugs.includes("falc")) {
-        slugs = [...slugs, "falc"];
-      }
+      const productionOptions = resolveProductionOptions(
+        adaptationLevel,
+        resolved.options,
+        input.productionOptions,
+      );
+      savedProductionOptions = productionOptions;
 
       const built = buildProfileAdaptationPrompt({
-        resolved,
+        resolved: { ...resolved, options: productionOptions },
         learnerProfile: profile,
         preferences,
         sourceText,
@@ -179,11 +223,22 @@ export async function runAdaptationEngine(
 
   const processingTimeMs = Date.now() - start;
 
+  const quality = computeAdaptationQualityScore({
+    adaptedContent: output.adapted_content,
+    summary: output.summary,
+    memorySheet: output.memory_sheet,
+    keywords: output.keywords,
+    profileSlugs: slugs,
+    mergedStrategy,
+  });
+
   return createAdaptation(client, {
     teacherId: input.teacherId,
     profileId: input.profileId,
     documentId: input.documentId,
     profileSlugs: slugs,
+    pedagogicalProfileSlugs: pedagogicalProfileSlugs.length > 0 ? pedagogicalProfileSlugs : slugs,
+    adaptationQualityScore: quality.score,
     status: isDemo ? "demo" : "completed",
     adaptationLevel,
     falcScore,
@@ -205,5 +260,6 @@ export async function runAdaptationEngine(
     pedagogicalProfileId,
     teacherProfileId,
     profileSource,
+    productionOptions: savedProductionOptions,
   });
 }

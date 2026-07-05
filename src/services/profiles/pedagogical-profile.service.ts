@@ -13,9 +13,15 @@ import {
   getFallbackProfiles,
   getFallbackStatus,
   seedToInsertPayload,
+  normalizeOptions,
 } from "@/services/profiles/fallback-profile.service";
-import type { PedagogicalProfileInput } from "@/schemas/pedagogical-profile.schema";
-import { normalizeOptions } from "@/services/profiles/fallback-profile.service";
+import type { PedagogicalProfileInput, PedagogicalProfilePatch } from "@/schemas/pedagogical-profile.schema";
+import { parsePedagogicalDimensions } from "@/schemas/profile-rules.schema";
+import { strategyFromDimensions } from "@/lib/profiles/strategy-columns";
+import { DEFAULT_PROFILE_OPTIONS, type PedagogicalProfile } from "@/types/pedagogical-profile";
+import { PEDAGOGICAL_ADAPTATION_SYSTEM_PROMPT } from "@/prompts/adaptation/pedagogical-profile.prompt";
+import { strategyToLegacyRulesText } from "@/services/profiles/strategy-prompt.service";
+import type { PedagogicalDimensions } from "@/types/pedagogical-dimensions";
 
 export async function restoreSystemProfilesFromFallback(
   client: SupabaseClient<Database>,
@@ -45,7 +51,9 @@ export async function restoreSystemProfilesFromFallback(
     const needsUpdate =
       existing.system_prompt !== payload.system_prompt
       || existing.pedagogical_rules !== payload.pedagogical_rules
-      || existing.name !== payload.name;
+      || existing.name !== payload.name
+      || JSON.stringify(existing.pedagogical_objectives) !== JSON.stringify(payload.pedagogical_objectives)
+      || JSON.stringify(existing.linguistic_rules) !== JSON.stringify(payload.linguistic_rules);
 
     if (needsUpdate) {
       await createPedagogicalProfileVersionSnapshot(
@@ -75,19 +83,68 @@ export async function getSystemProfilesRestoreStatus(client: SupabaseClient<Data
   };
 }
 
+export function buildGeneratedPromptFields(
+  dimensions: PedagogicalDimensions,
+  avoid: string[] = [],
+) {
+  const strategy = strategyFromDimensions(dimensions, avoid);
+  return {
+    system_prompt: PEDAGOGICAL_ADAPTATION_SYSTEM_PROMPT,
+    user_prompt: "",
+    pedagogical_rules: strategyToLegacyRulesText(strategy),
+    pedagogical_strategy: strategy,
+  };
+}
+
 export function mapPedagogicalProfileInput(input: PedagogicalProfileInput) {
+  const dimensions = parsePedagogicalDimensions(input);
+  const generated = buildGeneratedPromptFields(
+    dimensions,
+    input.pedagogical_strategy?.avoid ?? [],
+  );
   return {
     slug: input.slug,
     name: input.name,
     category: input.category,
     description: input.description ?? null,
-    system_prompt: input.system_prompt,
-    user_prompt: input.user_prompt ?? "",
-    pedagogical_rules: input.pedagogical_rules,
-    adaptation_level: input.adaptation_level,
-    options: normalizeOptions(input.options),
+    system_prompt: generated.system_prompt,
+    user_prompt: generated.user_prompt,
+    pedagogical_rules: generated.pedagogical_rules,
+    ...dimensions,
+    pedagogical_strategy: generated.pedagogical_strategy,
+    adaptation_level: input.adaptation_level ?? "standard",
+    options: normalizeOptions(input.options ?? DEFAULT_PROFILE_OPTIONS),
     is_active: input.is_active ?? true,
     sort_order: input.sort_order ?? 0,
+  };
+}
+
+export function enrichPedagogicalProfilePatch(
+  patch: PedagogicalProfilePatch,
+  current: PedagogicalProfile,
+): PedagogicalProfilePatch {
+  const mergedDimensions: PedagogicalDimensions = {
+    pedagogical_objectives: patch.pedagogical_objectives ?? current.pedagogical_objectives,
+    linguistic_rules: patch.linguistic_rules ?? current.linguistic_rules,
+    layout_rules: patch.layout_rules ?? current.layout_rules,
+    structuring_rules: patch.structuring_rules ?? current.structuring_rules,
+    visual_aids: patch.visual_aids ?? current.visual_aids,
+    audio_aids: patch.audio_aids ?? current.audio_aids,
+    exercise_adaptations: patch.exercise_adaptations ?? current.exercise_adaptations,
+    evaluation_rules: patch.evaluation_rules ?? current.evaluation_rules,
+  };
+
+  const generated = buildGeneratedPromptFields(
+    mergedDimensions,
+    patch.pedagogical_strategy?.avoid ?? current.pedagogical_strategy.avoid ?? [],
+  );
+
+  return {
+    ...patch,
+    system_prompt: generated.system_prompt,
+    user_prompt: generated.user_prompt,
+    pedagogical_rules: generated.pedagogical_rules,
+    pedagogical_strategy: generated.pedagogical_strategy,
   };
 }
 

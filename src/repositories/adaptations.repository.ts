@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/types/database";
 import type { FalcPictogramsData } from "@/types/falc";
+import type { ProfileOptions } from "@/types/pedagogical-profile";
 import type {
   Adaptation,
   KeywordItem,
@@ -36,6 +37,9 @@ export interface AdaptationResultInput {
   pedagogicalProfileId?: string | null;
   teacherProfileId?: string | null;
   profileSource?: import("@/types/pedagogical-profile").ProfileSource | null;
+  pedagogicalProfileSlugs?: string[];
+  adaptationQualityScore?: number | null;
+  productionOptions?: ProfileOptions;
 }
 
 function parseFalcPictograms(value: Json | null): FalcPictogramsData | null {
@@ -43,6 +47,26 @@ function parseFalcPictograms(value: Json | null): FalcPictogramsData | null {
   const data = value as unknown as FalcPictogramsData;
   if (!Array.isArray(data.items)) return null;
   return data;
+}
+
+function parseProductionOptions(value: Json | null): ProfileOptions {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {
+      generate_summary: true,
+      generate_quiz: true,
+      generate_mindmap: true,
+      generate_audio: false,
+      generate_falc: false,
+    };
+  }
+  const o = value as Record<string, unknown>;
+  return {
+    generate_summary: Boolean(o.generate_summary ?? true),
+    generate_quiz: Boolean(o.generate_quiz ?? true),
+    generate_mindmap: Boolean(o.generate_mindmap ?? true),
+    generate_audio: Boolean(o.generate_audio ?? false),
+    generate_falc: Boolean(o.generate_falc ?? false),
+  };
 }
 
 function mapAdaptation(row: Database["public"]["Tables"]["adaptations"]["Row"]): Adaptation {
@@ -54,6 +78,11 @@ function mapAdaptation(row: Database["public"]["Tables"]["adaptations"]["Row"]):
     generate_pictograms: row.generate_pictograms ?? false,
     falc_pictograms: parseFalcPictograms(row.falc_pictograms),
     profile_slugs: Array.isArray(row.profile_slugs) ? (row.profile_slugs as string[]) : [],
+    pedagogical_profile_slugs: Array.isArray(row.pedagogical_profile_slugs)
+      ? (row.pedagogical_profile_slugs as string[])
+      : [],
+    adaptation_quality_score: row.adaptation_quality_score ?? null,
+    production_options: parseProductionOptions(row.production_options),
     quiz: row.quiz as QuizData | null,
     keywords: row.keywords as KeywordItem[] | null,
     simplified_questions: Array.isArray(row.simplified_questions)
@@ -102,6 +131,8 @@ export async function createAdaptation(client: Client, input: AdaptationResultIn
       profile_id: input.profileId,
       document_id: input.documentId,
       profile_slugs: input.profileSlugs,
+      pedagogical_profile_slugs: input.pedagogicalProfileSlugs ?? input.profileSlugs,
+      adaptation_quality_score: input.adaptationQualityScore ?? null,
       status: input.status,
       adaptation_level: input.adaptationLevel,
       falc_score: input.falcScore ?? null,
@@ -123,6 +154,13 @@ export async function createAdaptation(client: Client, input: AdaptationResultIn
       pedagogical_profile_id: input.pedagogicalProfileId ?? null,
       teacher_profile_id: input.teacherProfileId ?? null,
       profile_source: input.profileSource ?? null,
+      production_options: (input.productionOptions ?? {
+        generate_summary: true,
+        generate_quiz: true,
+        generate_mindmap: true,
+        generate_audio: false,
+        generate_falc: false,
+      }) as unknown as Json,
     })
     .select("*")
     .single();

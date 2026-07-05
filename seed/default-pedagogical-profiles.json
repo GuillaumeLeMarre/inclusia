@@ -3,10 +3,10 @@
     "slug": "dyslexie",
     "name": "Dyslexie",
     "category": "learning",
-    "description": "Profil pour les besoins d'adaptation liés à la dyslexie : lecture, décodage et compréhension écrite.",
-    "system_prompt": "Tu adaptes le contenu pour un profil dyslexie. Privilégie la clarté visuelle et la lisibilité.",
-    "user_prompt": "Applique les règles dyslexie ci-dessous au document source.",
-    "pedagogical_rules": "Phrases courtes. Espacement aéré. Mots difficiles en gras. Évite les homophones. Ajoute des repères visuels.",
+    "description": "Réduire la charge de lecture et favoriser le repérage visuel.",
+    "system_prompt": "Tu adaptes pour un profil dyslexie en appliquant la stratégie structurée ci-dessous.",
+    "user_prompt": "Applique toutes les règles dyslexie au document source.",
+    "pedagogical_rules": "Phrases courtes, vocabulaire simple, texte aéré, mots clés en évidence, QCM privilégiés.",
     "adaptation_level": "standard",
     "options": {
       "generate_summary": true,
@@ -16,16 +16,106 @@
       "generate_falc": false
     },
     "is_active": true,
-    "sort_order": 1
+    "sort_order": 1,
+    "pedagogical_strategy": {
+      "objectives": [
+        "Réduire la charge de lecture",
+        "Améliorer le repérage visuel",
+        "Favoriser la compréhension"
+      ],
+      "linguistic_rules": [
+        "Phrases courtes",
+        "Vocabulaire simple",
+        "Éviter les phrases longues",
+        "Éviter les doubles négations",
+        "Définir les mots difficiles"
+      ],
+      "layout_rules": [
+        "Texte aéré",
+        "Paragraphes courts",
+        "Mots clés mis en évidence",
+        "Titres fréquents",
+        "Listes à puces"
+      ],
+      "structure_rules": [
+        "Résumer chaque section",
+        "Fournir les mots clés",
+        "Ajouter une fiche mémoire",
+        "Proposer une version audio"
+      ],
+      "visual_aids": [
+        "Repères visuels",
+        "Encadrés pour les notions clés",
+        "Schéma simplifié si pertinent"
+      ],
+      "audio_aids": [
+        "Script audio du résumé",
+        "Lecture possible section par section"
+      ],
+      "exercise_adaptations": [
+        "Privilégier les QCM",
+        "Limiter les réponses longues",
+        "Proposer des choix multiples"
+      ],
+      "evaluation_rules": [
+        "Questions courtes",
+        "Une consigne à la fois",
+        "Feedback immédiat si possible"
+      ]
+    },
+    "pedagogical_objectives": [
+      "Réduire la charge de lecture",
+      "Améliorer le repérage visuel",
+      "Favoriser la compréhension"
+    ],
+    "linguistic_rules": [
+      "Phrases courtes",
+      "Vocabulaire simple",
+      "Éviter les phrases longues",
+      "Éviter les doubles négations",
+      "Définir les mots difficiles"
+    ],
+    "layout_rules": [
+      "Texte aéré",
+      "Paragraphes courts",
+      "Mots clés mis en évidence",
+      "Titres fréquents",
+      "Listes à puces"
+    ],
+    "structuring_rules": [
+      "Résumer chaque section",
+      "Fournir les mots clés",
+      "Ajouter une fiche mémoire",
+      "Proposer une version audio"
+    ],
+    "visual_aids": [
+      "Repères visuels",
+      "Encadrés pour les notions clés",
+      "Schéma simplifié si pertinent"
+    ],
+    "audio_aids": [
+      "Script audio du résumé",
+      "Lecture possible section par section"
+    ],
+    "exercise_adaptations": [
+      "Privilégier les QCM",
+      "Limiter les réponses longues",
+      "Proposer des choix multiples"
+    ],
+    "evaluation_rules": [
+      "Questions courtes",
+      "Une consigne à la fois",
+      "Feedback immédiat si possible"
+    ]
   },
   {
     "slug": "dysorthographie",
     "name": "Dysorthographie",
     "category": "learning",
-    "description": "Profil pour les besoins d'adaptation liés à la dysorthographie.",
-    "system_prompt": "Tu adaptes le contenu pour un profil dysorthographie.",
-    "user_prompt": "Applique les règles dysorthographie ci-dessous.",
-    "pedagogical_rules": "Vocabulaire simplifié. Listes structurées. Rappels orthographiques pour mots clés.",
+    "description": "Soutien à l'orthographe et à la production écrite.",
+    "system_prompt": "Tu adaptes pour un profil dysorthographie.",
+    "user_prompt": "Applique la stratégie dysorthographie.",
+    "pedagogical_rules": "Vocabulaire simplifié, listes structurées, rappels orthographiques.",
     "adaptation_level": "standard",
     "options": {
       "generate_summary": true,
@@ -35,16 +125,82 @@
       "generate_falc": false
     },
     "is_active": true,
-    "sort_order": 2
+    "sort_order": 2,
+    "pedagogical_strategy": {
+      "objectives": [
+        "Réduire la charge orthographique",
+        "Renforcer les mots outils"
+      ],
+      "linguistic_rules": [
+        "Vocabulaire simplifié",
+        "Phrases courtes",
+        "Rappels orthographiques pour mots clés"
+      ],
+      "layout_rules": [
+        "Listes structurées",
+        "Mots clés en gras",
+        "Paragraphes courts"
+      ],
+      "structure_rules": [
+        "Fiche mémoire des mots difficiles",
+        "Répétition des règles clés"
+      ],
+      "visual_aids": [
+        "Tableaux de mots",
+        "Codes couleur discrets"
+      ],
+      "audio_aids": [],
+      "exercise_adaptations": [
+        "QCM",
+        "Textes à trous guidés",
+        "Réponses courtes"
+      ],
+      "evaluation_rules": [
+        "Correction formative",
+        "Critères explicites"
+      ]
+    },
+    "pedagogical_objectives": [
+      "Réduire la charge orthographique",
+      "Renforcer les mots outils"
+    ],
+    "linguistic_rules": [
+      "Vocabulaire simplifié",
+      "Phrases courtes",
+      "Rappels orthographiques pour mots clés"
+    ],
+    "layout_rules": [
+      "Listes structurées",
+      "Mots clés en gras",
+      "Paragraphes courts"
+    ],
+    "structuring_rules": [
+      "Fiche mémoire des mots difficiles",
+      "Répétition des règles clés"
+    ],
+    "visual_aids": [
+      "Tableaux de mots",
+      "Codes couleur discrets"
+    ],
+    "audio_aids": [],
+    "exercise_adaptations": [
+      "QCM",
+      "Textes à trous guidés",
+      "Réponses courtes"
+    ],
+    "evaluation_rules": [
+      "Correction formative",
+      "Critères explicites"
+    ]
   },
   {
     "slug": "dyspraxie",
     "name": "Dyspraxie",
     "category": "motor",
-    "description": "Profil pour les besoins d'adaptation liés à la dyspraxie.",
-    "system_prompt": "Tu adaptes le contenu pour un profil dyspraxie.",
-    "user_prompt": "Applique les règles dyspraxie ci-dessous.",
-    "pedagogical_rules": "Consignes courtes numérotées. Une action par étape. Moins de copie, plus de compréhension.",
+    "description": "Réduire l'effort moteur et la copie manuscrite.",
+    "system_prompt": "Tu adaptes pour un profil dyspraxie.",
+    "user_prompt": "Applique la stratégie dyspraxie.",
+    "pedagogical_rules": "Privilégier le numérique, limiter la copie, QCM et choix multiples.",
     "adaptation_level": "standard",
     "options": {
       "generate_summary": true,
@@ -54,16 +210,84 @@
       "generate_falc": false
     },
     "is_active": true,
-    "sort_order": 3
+    "sort_order": 3,
+    "pedagogical_strategy": {
+      "objectives": [
+        "Réduire l'effort d'écriture",
+        "Favoriser la compréhension sans copie"
+      ],
+      "linguistic_rules": [
+        "Consignes courtes numérotées",
+        "Une action par étape"
+      ],
+      "layout_rules": [
+        "Format numérique friendly",
+        "Peu de texte dense par écran"
+      ],
+      "structure_rules": [
+        "Étapes numérotées",
+        "Checklist de progression"
+      ],
+      "visual_aids": [
+        "Schémas étape par étape",
+        "Pictogrammes de consigne"
+      ],
+      "audio_aids": [
+        "Consignes lisibles à voix haute"
+      ],
+      "exercise_adaptations": [
+        "QCM",
+        "Glisser-déposer (description textuelle)",
+        "Choix multiples",
+        "Réponses pré-remplies possibles"
+      ],
+      "evaluation_rules": [
+        "Peu de production écrite longue",
+        "Auto-évaluation guidée"
+      ]
+    },
+    "pedagogical_objectives": [
+      "Réduire l'effort d'écriture",
+      "Favoriser la compréhension sans copie"
+    ],
+    "linguistic_rules": [
+      "Consignes courtes numérotées",
+      "Une action par étape"
+    ],
+    "layout_rules": [
+      "Format numérique friendly",
+      "Peu de texte dense par écran"
+    ],
+    "structuring_rules": [
+      "Étapes numérotées",
+      "Checklist de progression"
+    ],
+    "visual_aids": [
+      "Schémas étape par étape",
+      "Pictogrammes de consigne"
+    ],
+    "audio_aids": [
+      "Consignes lisibles à voix haute"
+    ],
+    "exercise_adaptations": [
+      "QCM",
+      "Glisser-déposer (description textuelle)",
+      "Choix multiples",
+      "Réponses pré-remplies possibles"
+    ],
+    "evaluation_rules": [
+      "Peu de production écrite longue",
+      "Auto-évaluation guidée"
+    ]
   },
   {
     "slug": "dysphasie",
     "name": "Dysphasie",
     "category": "language",
-    "description": "Profil pour les besoins d'adaptation liés à la dysphasie.",
-    "system_prompt": "Tu adaptes le contenu pour un profil dysphasie.",
-    "user_prompt": "Applique les règles dysphasie ci-dessous.",
-    "pedagogical_rules": "Vocabulaire concret. Phrases simples sujet-verbe-complément. Répétition des concepts clés.",
+    "description": "Langage concret et structures simples.",
+    "system_prompt": "Tu adaptes pour un profil dysphasie.",
+    "user_prompt": "Applique la stratégie dysphasie.",
+    "pedagogical_rules": "Vocabulaire concret, phrases SVC, répétition des concepts.",
     "adaptation_level": "standard",
     "options": {
       "generate_summary": true,
@@ -73,16 +297,82 @@
       "generate_falc": false
     },
     "is_active": true,
-    "sort_order": 4
+    "sort_order": 4,
+    "pedagogical_strategy": {
+      "objectives": [
+        "Faciliter l'accès au langage oral et écrit",
+        "Renforcer le vocabulaire concret"
+      ],
+      "linguistic_rules": [
+        "Vocabulaire concret",
+        "Phrases simples sujet-verbe-complément",
+        "Répétition des concepts clés"
+      ],
+      "layout_rules": [
+        "Une idée par paragraphe",
+        "Titres explicites"
+      ],
+      "structure_rules": [
+        "Résumés très courts",
+        "Rappels en début de section"
+      ],
+      "visual_aids": [
+        "Illustrations des concepts",
+        "Schémas simples"
+      ],
+      "audio_aids": [
+        "Version audio recommandée"
+      ],
+      "exercise_adaptations": [
+        "QCM",
+        "Questions orales reformulées en écrit"
+      ],
+      "evaluation_rules": [
+        "Consignes oralisables",
+        "Critères simples"
+      ]
+    },
+    "pedagogical_objectives": [
+      "Faciliter l'accès au langage oral et écrit",
+      "Renforcer le vocabulaire concret"
+    ],
+    "linguistic_rules": [
+      "Vocabulaire concret",
+      "Phrases simples sujet-verbe-complément",
+      "Répétition des concepts clés"
+    ],
+    "layout_rules": [
+      "Une idée par paragraphe",
+      "Titres explicites"
+    ],
+    "structuring_rules": [
+      "Résumés très courts",
+      "Rappels en début de section"
+    ],
+    "visual_aids": [
+      "Illustrations des concepts",
+      "Schémas simples"
+    ],
+    "audio_aids": [
+      "Version audio recommandée"
+    ],
+    "exercise_adaptations": [
+      "QCM",
+      "Questions orales reformulées en écrit"
+    ],
+    "evaluation_rules": [
+      "Consignes oralisables",
+      "Critères simples"
+    ]
   },
   {
     "slug": "tdah",
     "name": "TDAH",
     "category": "attention",
-    "description": "Profil pour les besoins d'adaptation liés au TDAH.",
-    "system_prompt": "Tu adaptes le contenu pour un profil TDAH.",
-    "user_prompt": "Applique les règles TDAH ci-dessous.",
-    "pedagogical_rules": "Segments courts. Titres visibles. Une idée par paragraphe. Questions de relance régulières.",
+    "description": "Maintenir l'attention et réduire la surcharge cognitive.",
+    "system_prompt": "Tu adaptes pour un profil TDAH.",
+    "user_prompt": "Applique la stratégie TDAH.",
+    "pedagogical_rules": "Blocs courts, une consigne à la fois, objectifs visibles, questions courtes.",
     "adaptation_level": "standard",
     "options": {
       "generate_summary": true,
@@ -92,16 +382,92 @@
       "generate_falc": false
     },
     "is_active": true,
-    "sort_order": 5
+    "sort_order": 5,
+    "pedagogical_strategy": {
+      "objectives": [
+        "Maintenir l'attention",
+        "Réduire la surcharge cognitive"
+      ],
+      "linguistic_rules": [
+        "Contenu découpé en blocs courts",
+        "Une consigne à la fois",
+        "Objectifs visibles",
+        "Rappels réguliers"
+      ],
+      "layout_rules": [
+        "Sections courtes",
+        "Encadrés importants",
+        "Progression étape par étape"
+      ],
+      "structure_rules": [
+        "Annoncer le plan",
+        "Résumé en début de section",
+        "Questions de relance"
+      ],
+      "visual_aids": [
+        "Titres très visibles",
+        "Listes numérotées",
+        "Schéma d'ensemble"
+      ],
+      "audio_aids": [
+        "Segments audio courts"
+      ],
+      "exercise_adaptations": [
+        "Questions courtes",
+        "Feedback immédiat",
+        "QCM"
+      ],
+      "evaluation_rules": [
+        "Évaluation par petites unités",
+        "Critères visibles"
+      ]
+    },
+    "pedagogical_objectives": [
+      "Maintenir l'attention",
+      "Réduire la surcharge cognitive"
+    ],
+    "linguistic_rules": [
+      "Contenu découpé en blocs courts",
+      "Une consigne à la fois",
+      "Objectifs visibles",
+      "Rappels réguliers"
+    ],
+    "layout_rules": [
+      "Sections courtes",
+      "Encadrés importants",
+      "Progression étape par étape"
+    ],
+    "structuring_rules": [
+      "Annoncer le plan",
+      "Résumé en début de section",
+      "Questions de relance"
+    ],
+    "visual_aids": [
+      "Titres très visibles",
+      "Listes numérotées",
+      "Schéma d'ensemble"
+    ],
+    "audio_aids": [
+      "Segments audio courts"
+    ],
+    "exercise_adaptations": [
+      "Questions courtes",
+      "Feedback immédiat",
+      "QCM"
+    ],
+    "evaluation_rules": [
+      "Évaluation par petites unités",
+      "Critères visibles"
+    ]
   },
   {
     "slug": "tsa",
     "name": "TSA",
     "category": "social",
-    "description": "Profil pour les besoins d'adaptation liés au TSA.",
-    "system_prompt": "Tu adaptes le contenu pour un profil TSA.",
-    "user_prompt": "Applique les règles TSA ci-dessous.",
-    "pedagogical_rules": "Structure prévisible. Consignes explicites. Évite le langage figuré. Annoncer le plan.",
+    "description": "Langage explicite et structure prévisible.",
+    "system_prompt": "Tu adaptes pour un profil TSA.",
+    "user_prompt": "Applique la stratégie TSA.",
+    "pedagogical_rules": "Langage explicite, consignes précises, structure répétitive, pas de métaphores.",
     "adaptation_level": "standard",
     "options": {
       "generate_summary": true,
@@ -111,16 +477,82 @@
       "generate_falc": false
     },
     "is_active": true,
-    "sort_order": 6
+    "sort_order": 6,
+    "pedagogical_strategy": {
+      "objectives": [
+        "Réduire l'implicite",
+        "Renforcer la prévisibilité"
+      ],
+      "linguistic_rules": [
+        "Langage explicite",
+        "Consignes très précises",
+        "Éviter les sous-entendus",
+        "Éviter les métaphores"
+      ],
+      "layout_rules": [
+        "Structure répétitive",
+        "Sections clairement identifiées"
+      ],
+      "structure_rules": [
+        "Annoncer le plan dès le début",
+        "Même trame pour chaque section",
+        "Récapitulatif final"
+      ],
+      "visual_aids": [
+        "Pictogrammes de routine",
+        "Schéma du déroulé"
+      ],
+      "audio_aids": [],
+      "exercise_adaptations": [
+        "Consignes étape par étape",
+        "Exemples modèles"
+      ],
+      "evaluation_rules": [
+        "Barème explicite",
+        "Pas d'ambiguïté dans les questions"
+      ]
+    },
+    "pedagogical_objectives": [
+      "Réduire l'implicite",
+      "Renforcer la prévisibilité"
+    ],
+    "linguistic_rules": [
+      "Langage explicite",
+      "Consignes très précises",
+      "Éviter les sous-entendus",
+      "Éviter les métaphores"
+    ],
+    "layout_rules": [
+      "Structure répétitive",
+      "Sections clairement identifiées"
+    ],
+    "structuring_rules": [
+      "Annoncer le plan dès le début",
+      "Même trame pour chaque section",
+      "Récapitulatif final"
+    ],
+    "visual_aids": [
+      "Pictogrammes de routine",
+      "Schéma du déroulé"
+    ],
+    "audio_aids": [],
+    "exercise_adaptations": [
+      "Consignes étape par étape",
+      "Exemples modèles"
+    ],
+    "evaluation_rules": [
+      "Barème explicite",
+      "Pas d'ambiguïté dans les questions"
+    ]
   },
   {
     "slug": "falc",
     "name": "FALC",
     "category": "accessibility",
-    "description": "Profil FALC — Facile à Lire et à Comprendre.",
-    "system_prompt": "Tu adaptes le contenu en FALC strict.",
-    "user_prompt": "Produis une version FALC du document source.",
-    "pedagogical_rules": "FALC strict : max 12 mots par phrase, une idée par phrase, vocabulaire courant, listes, exemples concrets, voix active.",
+    "description": "Facile à Lire et à Comprendre (Unapei, Inclusion Europe, Cap École Inclusive).",
+    "system_prompt": "Tu produis du contenu FALC strict. Vise un score FALC élevé.",
+    "user_prompt": "Transforme le document en FALC conforme aux recommandations.",
+    "pedagogical_rules": "Une idée par phrase, max 12 mots, mots simples, listes, exemples concrets.",
     "adaptation_level": "falc",
     "options": {
       "generate_summary": true,
@@ -130,16 +562,105 @@
       "generate_falc": true
     },
     "is_active": true,
-    "sort_order": 7
+    "sort_order": 7,
+    "pedagogical_strategy": {
+      "objectives": [
+        "Maximiser la lisibilité FALC",
+        "Aller à l'essentiel",
+        "Garantir la compréhension"
+      ],
+      "linguistic_rules": [
+        "Une idée par phrase",
+        "Phrases très courtes (max 12 mots)",
+        "Mots simples",
+        "Expliquer les mots difficiles",
+        "Voix active"
+      ],
+      "layout_rules": [
+        "Paragraphes très courts",
+        "Listes à puces",
+        "Police lisible",
+        "Forte aération"
+      ],
+      "structure_rules": [
+        "Titres explicites",
+        "Exemples concrets",
+        "Résumé en début",
+        "Fiche mémoire"
+      ],
+      "visual_aids": [
+        "Schémas simples",
+        "Pictogrammes si pertinent",
+        "Mise en évidence des mots clés"
+      ],
+      "audio_aids": [
+        "Script audio clair"
+      ],
+      "exercise_adaptations": [
+        "QCM simples",
+        "Questions courtes"
+      ],
+      "evaluation_rules": [
+        "Critères FALC",
+        "Compréhension vérifiable"
+      ],
+      "avoid": [
+        "Abstractions",
+        "Formulations complexes",
+        "Voix passive",
+        "Métaphores",
+        "Jargon non expliqué"
+      ]
+    },
+    "pedagogical_objectives": [
+      "Maximiser la lisibilité FALC",
+      "Aller à l'essentiel",
+      "Garantir la compréhension"
+    ],
+    "linguistic_rules": [
+      "Une idée par phrase",
+      "Phrases très courtes (max 12 mots)",
+      "Mots simples",
+      "Expliquer les mots difficiles",
+      "Voix active"
+    ],
+    "layout_rules": [
+      "Paragraphes très courts",
+      "Listes à puces",
+      "Police lisible",
+      "Forte aération"
+    ],
+    "structuring_rules": [
+      "Titres explicites",
+      "Exemples concrets",
+      "Résumé en début",
+      "Fiche mémoire"
+    ],
+    "visual_aids": [
+      "Schémas simples",
+      "Pictogrammes si pertinent",
+      "Mise en évidence des mots clés"
+    ],
+    "audio_aids": [
+      "Script audio clair"
+    ],
+    "exercise_adaptations": [
+      "QCM simples",
+      "Questions courtes"
+    ],
+    "evaluation_rules": [
+      "Critères FALC",
+      "Compréhension vérifiable"
+    ]
   },
   {
     "slug": "handicap_moteur",
     "name": "Handicap moteur",
     "category": "motor",
-    "description": "Profil pour les besoins d'adaptation liés au handicap moteur.",
-    "system_prompt": "Tu adaptes le contenu pour un profil handicap moteur.",
-    "user_prompt": "Applique les règles handicap moteur ci-dessous.",
-    "pedagogical_rules": "Contenu accessible sans manipulation fine. Privilégier lecture et compréhension orale.",
+    "description": "Accessibilité sans manipulation fine.",
+    "system_prompt": "Tu adaptes pour un profil handicap moteur.",
+    "user_prompt": "Applique la stratégie handicap moteur.",
+    "pedagogical_rules": "Contenu accessible numériquement, peu de copie, lecture et compréhension.",
     "adaptation_level": "standard",
     "options": {
       "generate_summary": true,
@@ -149,16 +670,76 @@
       "generate_falc": false
     },
     "is_active": true,
-    "sort_order": 8
+    "sort_order": 8,
+    "pedagogical_strategy": {
+      "objectives": [
+        "Réduire les gestes fins requis",
+        "Favoriser l'accès numérique"
+      ],
+      "linguistic_rules": [
+        "Consignes claires",
+        "Peu de tâches simultanées"
+      ],
+      "layout_rules": [
+        "Navigation simple",
+        "Blocs accessibles au clavier"
+      ],
+      "structure_rules": [
+        "Progression linéaire"
+      ],
+      "visual_aids": [
+        "Schémas descriptifs"
+      ],
+      "audio_aids": [
+        "Support audio complet"
+      ],
+      "exercise_adaptations": [
+        "QCM",
+        "Choix multiples",
+        "Réponses courtes"
+      ],
+      "evaluation_rules": [
+        "Alternatives à la production longue"
+      ]
+    },
+    "pedagogical_objectives": [
+      "Réduire les gestes fins requis",
+      "Favoriser l'accès numérique"
+    ],
+    "linguistic_rules": [
+      "Consignes claires",
+      "Peu de tâches simultanées"
+    ],
+    "layout_rules": [
+      "Navigation simple",
+      "Blocs accessibles au clavier"
+    ],
+    "structuring_rules": [
+      "Progression linéaire"
+    ],
+    "visual_aids": [
+      "Schémas descriptifs"
+    ],
+    "audio_aids": [
+      "Support audio complet"
+    ],
+    "exercise_adaptations": [
+      "QCM",
+      "Choix multiples",
+      "Réponses courtes"
+    ],
+    "evaluation_rules": [
+      "Alternatives à la production longue"
+    ]
   },
   {
     "slug": "deficience_visuelle",
     "name": "Déficience visuelle",
     "category": "sensory",
-    "description": "Profil pour les besoins d'adaptation liés à la déficience visuelle.",
-    "system_prompt": "Tu adaptes le contenu pour un profil déficience visuelle.",
-    "user_prompt": "Applique les règles déficience visuelle ci-dessous.",
-    "pedagogical_rules": "Descriptions verbales précises. Hiérarchie claire. Compatible lecture vocale.",
+    "description": "Descriptions verbales et structure sémantique.",
+    "system_prompt": "Tu adaptes pour un profil déficience visuelle.",
+    "user_prompt": "Applique la stratégie déficience visuelle.",
+    "pedagogical_rules": "Descriptions alternatives, contraste élevé, compatibilité lecteur d'écran.",
     "adaptation_level": "standard",
     "options": {
       "generate_summary": true,
@@ -168,16 +749,80 @@
       "generate_falc": false
     },
     "is_active": true,
-    "sort_order": 9
+    "sort_order": 9,
+    "pedagogical_strategy": {
+      "objectives": [
+        "Compenser l'information visuelle",
+        "Structurer pour lecteur d'écran"
+      ],
+      "linguistic_rules": [
+        "Descriptions alternatives des visuels",
+        "Vocabulaire précis et ordonné"
+      ],
+      "layout_rules": [
+        "Structure sémantique propre",
+        "Contraste élevé (mention textuelle)",
+        "Hiérarchie de titres claire"
+      ],
+      "structure_rules": [
+        "Annoncer la structure",
+        "Résumés descriptifs"
+      ],
+      "visual_aids": [
+        "Décrire toute image en texte",
+        "Éviter le « voir ci-dessous »"
+      ],
+      "audio_aids": [
+        "Version audio complète recommandée"
+      ],
+      "exercise_adaptations": [
+        "QCM accessibles",
+        "Consignes descriptives"
+      ],
+      "evaluation_rules": [
+        "Énoncés lisibles par synthèse vocale"
+      ]
+    },
+    "pedagogical_objectives": [
+      "Compenser l'information visuelle",
+      "Structurer pour lecteur d'écran"
+    ],
+    "linguistic_rules": [
+      "Descriptions alternatives des visuels",
+      "Vocabulaire précis et ordonné"
+    ],
+    "layout_rules": [
+      "Structure sémantique propre",
+      "Contraste élevé (mention textuelle)",
+      "Hiérarchie de titres claire"
+    ],
+    "structuring_rules": [
+      "Annoncer la structure",
+      "Résumés descriptifs"
+    ],
+    "visual_aids": [
+      "Décrire toute image en texte",
+      "Éviter le « voir ci-dessous »"
+    ],
+    "audio_aids": [
+      "Version audio complète recommandée"
+    ],
+    "exercise_adaptations": [
+      "QCM accessibles",
+      "Consignes descriptives"
+    ],
+    "evaluation_rules": [
+      "Énoncés lisibles par synthèse vocale"
+    ]
   },
   {
     "slug": "deficience_auditive",
     "name": "Déficience auditive",
     "category": "sensory",
-    "description": "Profil pour les besoins d'adaptation liés à la déficience auditive.",
-    "system_prompt": "Tu adaptes le contenu pour un profil déficience auditive.",
-    "user_prompt": "Applique les règles déficience auditive ci-dessous.",
-    "pedagogical_rules": "Contenu visuel et textuel riche. Vocabulaire écrit explicite. Pas de dépendance à l'oral seul.",
+    "description": "Support écrit complet et schémas explicatifs.",
+    "system_prompt": "Tu adaptes pour un profil déficience auditive.",
+    "user_prompt": "Applique la stratégie déficience auditive.",
+    "pedagogical_rules": "Contenu visuel et textuel riche, vocabulaire écrit explicite.",
     "adaptation_level": "standard",
     "options": {
       "generate_summary": true,
@@ -187,16 +832,78 @@
       "generate_falc": false
     },
     "is_active": true,
-    "sort_order": 10
+    "sort_order": 10,
+    "pedagogical_strategy": {
+      "objectives": [
+        "Compenser l'information orale",
+        "Renforcer le visuel et l'écrit"
+      ],
+      "linguistic_rules": [
+        "Support écrit complet",
+        "Vocabulaire clarifié",
+        "Pas de dépendance à l'oral seul"
+      ],
+      "layout_rules": [
+        "Schémas explicatifs",
+        "Légendes textuelles"
+      ],
+      "structure_rules": [
+        "Transcrire les notions orales",
+        "Glossaire des termes"
+      ],
+      "visual_aids": [
+        "Schémas annotés",
+        "Tableaux récapitulatifs"
+      ],
+      "audio_aids": [],
+      "exercise_adaptations": [
+        "QCM écrits",
+        "Consignes fully written"
+      ],
+      "evaluation_rules": [
+        "Évaluation écrite",
+        "Critères explicites"
+      ]
+    },
+    "pedagogical_objectives": [
+      "Compenser l'information orale",
+      "Renforcer le visuel et l'écrit"
+    ],
+    "linguistic_rules": [
+      "Support écrit complet",
+      "Vocabulaire clarifié",
+      "Pas de dépendance à l'oral seul"
+    ],
+    "layout_rules": [
+      "Schémas explicatifs",
+      "Légendes textuelles"
+    ],
+    "structuring_rules": [
+      "Transcrire les notions orales",
+      "Glossaire des termes"
+    ],
+    "visual_aids": [
+      "Schémas annotés",
+      "Tableaux récapitulatifs"
+    ],
+    "audio_aids": [],
+    "exercise_adaptations": [
+      "QCM écrits",
+      "Consignes fully written"
+    ],
+    "evaluation_rules": [
+      "Évaluation écrite",
+      "Critères explicites"
+    ]
   },
   {
     "slug": "allophone",
     "name": "Allophone",
     "category": "language",
-    "description": "Profil pour les élèves allophones en apprentissage du français.",
-    "system_prompt": "Tu adaptes le contenu pour un profil allophone (FLE).",
-    "user_prompt": "Applique les règles allophone ci-dessous.",
-    "pedagogical_rules": "Français simplifié (FLE). Définir chaque terme technique. Traductions contextuelles si utile.",
+    "description": "Français simplifié avec glossaire automatique.",
+    "system_prompt": "Tu adaptes pour un profil allophone (FLE).",
+    "user_prompt": "Applique la stratégie allophone avec glossaire.",
+    "pedagogical_rules": "Vocabulaire simple, définitions des termes, glossaire, phrases courtes.",
     "adaptation_level": "simplified",
     "options": {
       "generate_summary": true,
@@ -206,16 +913,84 @@
       "generate_falc": false
     },
     "is_active": true,
-    "sort_order": 11
+    "sort_order": 11,
+    "pedagogical_strategy": {
+      "objectives": [
+        "Faciliter l'accès au français",
+        "Clarifier le vocabulaire disciplinaire"
+      ],
+      "linguistic_rules": [
+        "Vocabulaire simple",
+        "Définition automatique des termes complexes",
+        "Phrases courtes",
+        "Exemples concrets"
+      ],
+      "layout_rules": [
+        "Glossaire en fin de document",
+        "Mots clés surlignés"
+      ],
+      "structure_rules": [
+        "Introduire le contexte",
+        "Répéter les notions importantes"
+      ],
+      "visual_aids": [
+        "Schémas simples",
+        "Exemples visuels décrits"
+      ],
+      "audio_aids": [
+        "Script audio lent et clair"
+      ],
+      "exercise_adaptations": [
+        "QCM avec vocabulaire défini",
+        "Questions guidées"
+      ],
+      "evaluation_rules": [
+        "Vocabulaire autorisé listé",
+        "Consignes courtes"
+      ]
+    },
+    "pedagogical_objectives": [
+      "Faciliter l'accès au français",
+      "Clarifier le vocabulaire disciplinaire"
+    ],
+    "linguistic_rules": [
+      "Vocabulaire simple",
+      "Définition automatique des termes complexes",
+      "Phrases courtes",
+      "Exemples concrets"
+    ],
+    "layout_rules": [
+      "Glossaire en fin de document",
+      "Mots clés surlignés"
+    ],
+    "structuring_rules": [
+      "Introduire le contexte",
+      "Répéter les notions importantes"
+    ],
+    "visual_aids": [
+      "Schémas simples",
+      "Exemples visuels décrits"
+    ],
+    "audio_aids": [
+      "Script audio lent et clair"
+    ],
+    "exercise_adaptations": [
+      "QCM avec vocabulaire défini",
+      "Questions guidées"
+    ],
+    "evaluation_rules": [
+      "Vocabulaire autorisé listé",
+      "Consignes courtes"
+    ]
   },
   {
     "slug": "lecture_simplifiee",
     "name": "Lecture simplifiée",
     "category": "learning",
-    "description": "Profil pour une lecture simplifiée et accessible.",
-    "system_prompt": "Tu adaptes le contenu pour une lecture simplifiée.",
-    "user_prompt": "Applique les règles de lecture simplifiée ci-dessous.",
-    "pedagogical_rules": "Phrases courtes. Vocabulaire courant. Une idée par paragraphe. Titres explicites. Exemples concrets.",
+    "description": "Lecture accessible avec phrases courtes.",
+    "system_prompt": "Tu adaptes pour une lecture simplifiée.",
+    "user_prompt": "Applique la stratégie lecture simplifiée.",
+    "pedagogical_rules": "Phrases courtes, vocabulaire courant, titres explicites.",
     "adaptation_level": "simplified",
     "options": {
       "generate_summary": true,
@@ -225,6 +1000,70 @@
       "generate_falc": false
     },
     "is_active": true,
-    "sort_order": 12
+    "sort_order": 12,
+    "pedagogical_strategy": {
+      "objectives": [
+        "Faciliter la lecture",
+        "Maintenir le sens du cours"
+      ],
+      "linguistic_rules": [
+        "Phrases courtes",
+        "Vocabulaire courant",
+        "Une idée par paragraphe"
+      ],
+      "layout_rules": [
+        "Titres explicites",
+        "Paragraphes aérés",
+        "Listes à puces"
+      ],
+      "structure_rules": [
+        "Résumé par section",
+        "Mots clés listés"
+      ],
+      "visual_aids": [
+        "Schéma simple si utile"
+      ],
+      "audio_aids": [
+        "Audio optionnel"
+      ],
+      "exercise_adaptations": [
+        "QCM",
+        "Questions courtes"
+      ],
+      "evaluation_rules": [
+        "Compréhension progressive"
+      ]
+    },
+    "pedagogical_objectives": [
+      "Faciliter la lecture",
+      "Maintenir le sens du cours"
+    ],
+    "linguistic_rules": [
+      "Phrases courtes",
+      "Vocabulaire courant",
+      "Une idée par paragraphe"
+    ],
+    "layout_rules": [
+      "Titres explicites",
+      "Paragraphes aérés",
+      "Listes à puces"
+    ],
+    "structuring_rules": [
+      "Résumé par section",
+      "Mots clés listés"
+    ],
+    "visual_aids": [
+      "Schéma simple si utile"
+    ],
+    "audio_aids": [
+      "Audio optionnel"
+    ],
+    "exercise_adaptations": [
+      "QCM",
+      "Questions courtes"
+    ],
+    "evaluation_rules": [
+      "Compréhension progressive"
+    ]
   }
 ]

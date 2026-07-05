@@ -6,9 +6,11 @@ import { Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdaptationLevelSelector } from "@/features/falc/components/adaptation-level-selector";
+import { AdaptationProductionOptions } from "@/features/adaptations/components/adaptation-production-options";
 import type { AdaptationLevel } from "@/types/adaptation-level";
 import type { Document, LearnerProfile } from "@/types";
 import type { PedagogicalProfile, TeacherProfile } from "@/types/pedagogical-profile";
+import { DEFAULT_PROFILE_OPTIONS } from "@/types/pedagogical-profile";
 
 const SELECT_CLASS =
   "w-full min-h-[44px] rounded-lg border border-slate-200 bg-white px-3 py-2 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30";
@@ -32,9 +34,12 @@ export function AdaptationWizard({
   const [documentId, setDocumentId] = useState("");
   const [pedagogicalSelection, setPedagogicalSelection] = useState("");
   const [adaptationLevel, setAdaptationLevel] = useState<AdaptationLevel>("standard");
+  const [productionOptions, setProductionOptions] = useState({ ...DEFAULT_PROFILE_OPTIONS });
   const [generatePictograms, setGeneratePictograms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const [extraProfileSlugs, setExtraProfileSlugs] = useState<string[]>([]);
 
   useEffect(() => {
     const teacherId = searchParams.get("teacherProfileId");
@@ -53,6 +58,37 @@ export function AdaptationWizard({
     return {};
   }
 
+  function primarySlug(): string | null {
+    const [kind, id] = pedagogicalSelection.split(":");
+    if (kind === "slug") return id ?? null;
+    if (kind === "system") {
+      return systemProfiles.find((p) => p.id === id)?.slug ?? null;
+    }
+    return null;
+  }
+
+  function canCombineProfiles(): boolean {
+    return pedagogicalSelection.startsWith("slug:") || pedagogicalSelection.startsWith("system:");
+  }
+
+  function buildProfilePayload() {
+    const base = parseSelection();
+    if (base.teacherProfileId) return base;
+
+    const primary = primarySlug();
+    const slugs = primary
+      ? [primary, ...extraProfileSlugs.filter((s) => s !== primary)]
+      : extraProfileSlugs;
+
+    if (slugs.length > 1) {
+      return { pedagogicalProfileSlugs: slugs };
+    }
+    if (slugs.length === 1) {
+      return { pedagogicalProfileSlug: slugs[0] };
+    }
+    return base;
+  }
+
   async function handleAdapt() {
     setError("");
     if (!learnerProfileId || !documentId || !pedagogicalSelection) {
@@ -68,8 +104,9 @@ export function AdaptationWizard({
         body: JSON.stringify({
           profileId: learnerProfileId,
           documentId,
-          ...parseSelection(),
+          ...buildProfilePayload(),
           adaptationLevel,
+          productionOptions,
           generatePictograms,
         }),
       });
@@ -147,7 +184,10 @@ export function AdaptationWizard({
             className={SELECT_CLASS}
             value={pedagogicalSelection}
             aria-label="Sélectionner un profil pédagogique"
-            onChange={(e) => setPedagogicalSelection(e.target.value)}
+            onChange={(e) => {
+              setPedagogicalSelection(e.target.value);
+              setExtraProfileSlugs([]);
+            }}
           >
             <option value="">Sélectionner…</option>
             {teacherProfiles.length > 0 && (
@@ -165,6 +205,32 @@ export function AdaptationWizard({
               ))}
             </optgroup>
           </select>
+          {canCombineProfiles() && (
+            <fieldset className="space-y-2 rounded-lg border border-slate-200 p-3">
+              <legend className="px-1 text-sm font-medium text-slate-700">
+                Combiner avec d&apos;autres profils (optionnel)
+              </legend>
+              {systemProfiles
+                .filter((p) => p.slug !== primarySlug())
+                .map((p) => (
+                  <label key={p.slug} className="flex min-h-[44px] cursor-pointer items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={extraProfileSlugs.includes(p.slug)}
+                      onChange={(e) => {
+                        setExtraProfileSlugs((prev) =>
+                          e.target.checked
+                            ? [...prev, p.slug]
+                            : prev.filter((s) => s !== p.slug),
+                        );
+                      }}
+                      className="h-4 w-4 accent-primary"
+                    />
+                    <span className="text-base text-slate-700">{p.name}</span>
+                  </label>
+                ))}
+            </fieldset>
+          )}
           <p className="text-sm text-slate-500">
             <a href="/profiles" className="text-primary underline">Gérer vos profils pédagogiques</a>
           </p>
@@ -175,6 +241,11 @@ export function AdaptationWizard({
         <CardHeader><CardTitle className="text-lg">4. Niveau et options</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <AdaptationLevelSelector value={adaptationLevel} onChange={setAdaptationLevel} />
+          <AdaptationProductionOptions
+            value={productionOptions}
+            onChange={setProductionOptions}
+            adaptationLevel={adaptationLevel}
+          />
           <label className="flex min-h-[44px] cursor-pointer items-center gap-3 rounded-lg border border-slate-200 p-4">
             <input
               type="checkbox"

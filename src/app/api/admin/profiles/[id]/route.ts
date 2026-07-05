@@ -6,6 +6,7 @@ import {
   findPedagogicalProfileById,
 } from "@/repositories/pedagogical-profiles.repository";
 import { patchPedagogicalProfileWithVersion } from "@/services/profiles/profile-version.service";
+import { enrichPedagogicalProfilePatch } from "@/services/profiles/pedagogical-profile.service";
 import { pedagogicalProfilePatchSchema } from "@/schemas/pedagogical-profile.schema";
 
 interface RouteParams {
@@ -22,10 +23,15 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
     }
 
+    const existing = await findPedagogicalProfileById(supabase, id);
+    if (!existing) {
+      return NextResponse.json({ error: "Profil introuvable" }, { status: 404 });
+    }
+
     const profile = await patchPedagogicalProfileWithVersion(
       supabase,
       id,
-      parsed.data,
+      enrichPedagogicalProfilePatch(parsed.data, existing),
       teacherId,
     );
     return NextResponse.json({ profile });

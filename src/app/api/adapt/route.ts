@@ -25,9 +25,12 @@ export async function POST(request: Request) {
       documentId: parsed.data.documentId,
       teacherProfileId: parsed.data.teacherProfileId,
       pedagogicalProfileId: parsed.data.pedagogicalProfileId,
+      pedagogicalProfileIds: parsed.data.pedagogicalProfileIds,
       pedagogicalProfileSlug: parsed.data.pedagogicalProfileSlug,
+      pedagogicalProfileSlugs: parsed.data.pedagogicalProfileSlugs,
       profileSlugs: parsed.data.profileSlugs ?? [],
       adaptationLevel: parsed.data.adaptationLevel,
+      productionOptions: parsed.data.productionOptions,
       generatePictograms: parsed.data.generatePictograms,
     });
 

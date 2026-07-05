@@ -1,5 +1,10 @@
 import { z } from "zod";
 import { isAdaptationLevel } from "@/types/adaptation-level";
+import { pedagogicalStrategySchema } from "@/schemas/pedagogical-strategy.schema";
+import {
+  pedagogicalDimensionsSchema,
+  teacherCustomDimensionsSchema,
+} from "@/schemas/profile-rules.schema";
 
 export const profileOptionsSchema = z.object({
   generate_summary: z.boolean(),
@@ -22,15 +27,16 @@ export const pedagogicalProfileInputSchema = z.object({
   name: z.string().min(2, "Nom requis").max(80),
   category: z.string().min(2).max(40),
   description: z.string().max(500).optional().nullable(),
-  system_prompt: z.string().min(10, "Prompt système trop court").max(8000),
-  user_prompt: z.string().max(4000).default(""),
-  pedagogical_rules: z.string().min(5, "Règles pédagogiques requises").max(4000),
-  adaptation_level: adaptationLevelSchema,
-  options: profileOptionsSchema,
+  system_prompt: z.string().max(8000).optional(),
+  user_prompt: z.string().max(4000).optional().default(""),
+  pedagogical_rules: z.string().max(4000).optional(),
+  pedagogical_strategy: pedagogicalStrategySchema.optional(),
+  adaptation_level: adaptationLevelSchema.default("standard"),
+  options: profileOptionsSchema.optional(),
   is_active: z.boolean().default(true),
   sort_order: z.number().int().min(0).max(999).default(0),
   change_note: z.string().max(500).optional(),
-});
+}).merge(pedagogicalDimensionsSchema);
 
 export const pedagogicalProfilePatchSchema = pedagogicalProfileInputSchema
   .partial()
@@ -45,11 +51,12 @@ export const teacherProfileInputSchema = z.object({
   source_profile_id: z.string().uuid().optional().nullable(),
   custom_prompt: z.string().max(4000).optional().nullable(),
   custom_rules: z.string().max(4000).optional().nullable(),
-  adaptation_level: adaptationLevelSchema,
-  options: profileOptionsSchema,
+  custom_strategy: pedagogicalStrategySchema.optional(),
+  adaptation_level: adaptationLevelSchema.default("standard"),
+  options: profileOptionsSchema.optional(),
   is_active: z.boolean().default(true),
   change_note: z.string().max(500).optional(),
-});
+}).merge(teacherCustomDimensionsSchema);
 
 export const teacherProfilePatchSchema = teacherProfileInputSchema
   .partial()

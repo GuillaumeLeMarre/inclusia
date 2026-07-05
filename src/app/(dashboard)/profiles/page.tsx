@@ -8,32 +8,13 @@ import { createClient } from "@/lib/supabase/server";
 import { findAllPedagogicalProfiles } from "@/repositories/pedagogical-profiles.repository";
 import { findTeacherProfiles } from "@/repositories/teacher-profiles.repository";
 import type { PedagogicalProfile } from "@/types/pedagogical-profile";
-import { getFallbackProfiles } from "@/services/profiles/fallback-profile.service";
-
-function fallbackAsProfiles(): PedagogicalProfile[] {
-  return getFallbackProfiles().map((p, index) => ({
-    id: `fallback:${p.slug}`,
-    slug: p.slug,
-    name: p.name,
-    category: p.category,
-    description: p.description,
-    system_prompt: p.system_prompt,
-    user_prompt: p.user_prompt,
-    pedagogical_rules: p.pedagogical_rules,
-    adaptation_level: p.adaptation_level,
-    options: p.options,
-    is_active: p.is_active,
-    sort_order: p.sort_order ?? index,
-    created_at: "",
-    updated_at: "",
-  }));
-}
+import { fallbackSeedsAsProfiles } from "@/services/profiles/fallback-profile.service";
 
 export default async function PedagogicalProfilesPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  let systemProfiles: PedagogicalProfile[] = fallbackAsProfiles();
+  let systemProfiles: PedagogicalProfile[] = fallbackSeedsAsProfiles();
 
   let myProfiles: Awaited<ReturnType<typeof findTeacherProfiles>> = [];
 

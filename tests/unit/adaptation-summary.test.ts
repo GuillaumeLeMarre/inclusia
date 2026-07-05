@@ -10,6 +10,8 @@ function baseAdaptation(overrides: Partial<Adaptation> = {}): Adaptation {
     profile_id: "p1",
     document_id: "d1",
     profile_slugs: ["dyslexie", "tdah"],
+    pedagogical_profile_slugs: ["dyslexie", "tdah"],
+    adaptation_quality_score: null,
     status: "completed",
     adaptation_level: "standard",
     falc_score: null,

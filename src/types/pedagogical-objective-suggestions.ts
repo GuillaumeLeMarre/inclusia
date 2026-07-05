@@ -1,0 +1,21 @@
+/** Objectifs pédagogiques proposés dans le sélecteur. */
+export const PEDAGOGICAL_OBJECTIVE_SUGGESTIONS: readonly string[] = [
+  "Réduire la charge de lecture",
+  "Améliorer le repérage visuel",
+  "Favoriser la compréhension",
+  "Faciliter l'accès au contenu",
+  "Réduire la charge cognitive",
+  "Maintenir l'attention",
+  "Renforcer la prévisibilité",
+  "Faciliter le décodage des mots difficiles",
+  "Renforcer le vocabulaire concret",
+  "Clarifier le vocabulaire disciplinaire",
+  "Réduire l'effort d'écriture",
+  "Maximiser la lisibilité FALC",
+  "Aller à l'essentiel",
+  "Compenser l'information visuelle",
+  "Compenser l'information orale",
+  "Renforcer l'autonomie de l'apprenant",
+  "Soutenir la mémorisation à long terme",
+  "Maintenir le sens et les notions clés",
+];

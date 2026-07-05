@@ -6,10 +6,18 @@ import type {
   TeacherProfileVersion,
 } from "@/types/pedagogical-profile";
 import type { AdaptationLevel } from "@/types/adaptation-level";
+import { emptyStrategy } from "@/types/pedagogical-profile";
+import {
+  strategyFromTeacherDimensions,
+  teacherDimensionsFromRow,
+  teacherDimensionsToDbPayload,
+} from "@/lib/profiles/strategy-columns";
+import { EMPTY_TEACHER_DIMENSIONS } from "@/types/pedagogical-dimensions";
 
 type Client = SupabaseClient<Database>;
 
 function mapProfile(row: Record<string, unknown>): TeacherProfile {
+  const dimensions = teacherDimensionsFromRow(row);
   return {
     id: row.id as string,
     teacher_id: row.teacher_id as string,
@@ -18,6 +26,8 @@ function mapProfile(row: Record<string, unknown>): TeacherProfile {
     description: (row.description as string | null) ?? null,
     custom_prompt: (row.custom_prompt as string | null) ?? null,
     custom_rules: (row.custom_rules as string | null) ?? null,
+    ...dimensions,
+    custom_strategy: strategyFromTeacherDimensions(dimensions),
     adaptation_level: row.adaptation_level as AdaptationLevel,
     options: row.options as ProfileOptions,
     is_active: row.is_active as boolean,
@@ -27,6 +37,7 @@ function mapProfile(row: Record<string, unknown>): TeacherProfile {
 }
 
 function mapVersion(row: Record<string, unknown>): TeacherProfileVersion {
+  const dimensions = teacherDimensionsFromRow(row);
   return {
     id: row.id as string,
     profile_id: row.profile_id as string,
@@ -36,6 +47,8 @@ function mapVersion(row: Record<string, unknown>): TeacherProfileVersion {
     description: (row.description as string | null) ?? null,
     custom_prompt: (row.custom_prompt as string | null) ?? null,
     custom_rules: (row.custom_rules as string | null) ?? null,
+    ...dimensions,
+    custom_strategy: strategyFromTeacherDimensions(dimensions),
     adaptation_level: row.adaptation_level as AdaptationLevel,
     options: row.options as ProfileOptions,
     is_active: row.is_active as boolean,
@@ -43,6 +56,18 @@ function mapVersion(row: Record<string, unknown>): TeacherProfileVersion {
     created_by: (row.created_by as string | null) ?? null,
     created_at: row.created_at as string,
   };
+}
+
+function buildDbPayload(payload: Partial<TeacherProfile>): Record<string, unknown> {
+  const hasDimensions = (
+    Object.keys(EMPTY_TEACHER_DIMENSIONS) as (keyof typeof EMPTY_TEACHER_DIMENSIONS)[]
+  ).some((key) => key in payload);
+
+  if (!hasDimensions) return { ...payload };
+
+  const dimensions = teacherDimensionsToDbPayload(payload);
+  const strategy = strategyFromTeacherDimensions(dimensions);
+  return { ...payload, ...dimensions, custom_strategy: strategy };
 }
 
 export async function findTeacherProfiles(
@@ -84,12 +109,23 @@ export async function insertTeacherProfile(
   client: Client,
   payload: Omit<TeacherProfile, "id" | "created_at" | "updated_at">,
 ): Promise<TeacherProfile> {
+  const dbPayload = buildDbPayload(payload);
+  const { custom_strategy, options, ...rest } = dbPayload;
   const { data, error } = await client
     .from("teacher_profiles")
     .insert({
-      ...payload,
-      options: payload.options as unknown as Json,
-    })
+      ...rest,
+      options: options as unknown as Json,
+      custom_strategy: (custom_strategy ?? emptyStrategy()) as unknown as Json,
+      custom_pedagogical_objectives: rest.custom_pedagogical_objectives as unknown as Json,
+      custom_linguistic_rules: rest.custom_linguistic_rules as unknown as Json,
+      custom_layout_rules: rest.custom_layout_rules as unknown as Json,
+      custom_structuring_rules: rest.custom_structuring_rules as unknown as Json,
+      custom_visual_aids: rest.custom_visual_aids as unknown as Json,
+      custom_audio_aids: rest.custom_audio_aids as unknown as Json,
+      custom_exercise_adaptations: rest.custom_exercise_adaptations as unknown as Json,
+      custom_evaluation_rules: rest.custom_evaluation_rules as unknown as Json,
+    } as Database["public"]["Tables"]["teacher_profiles"]["Insert"])
     .select("*")
     .single();
   if (error) throw error;
@@ -102,12 +138,45 @@ export async function updateTeacherProfile(
   id: string,
   payload: Partial<Omit<TeacherProfile, "id" | "teacher_id" | "created_at" | "updated_at">>,
 ): Promise<TeacherProfile> {
-  const { options, ...rest } = payload;
+  const dbPayload = buildDbPayload(payload);
+  const {
+    options,
+    custom_strategy,
+    custom_pedagogical_objectives,
+    custom_linguistic_rules,
+    custom_layout_rules,
+    custom_structuring_rules,
+    custom_visual_aids,
+    custom_audio_aids,
+    custom_exercise_adaptations,
+    custom_evaluation_rules,
+    ...rest
+  } = dbPayload;
+
   const { data, error } = await client
     .from("teacher_profiles")
     .update({
       ...rest,
       ...(options ? { options: options as unknown as Json } : {}),
+      ...(custom_strategy ? { custom_strategy: custom_strategy as unknown as Json } : {}),
+      ...(custom_pedagogical_objectives
+        ? { custom_pedagogical_objectives: custom_pedagogical_objectives as unknown as Json }
+        : {}),
+      ...(custom_linguistic_rules
+        ? { custom_linguistic_rules: custom_linguistic_rules as unknown as Json }
+        : {}),
+      ...(custom_layout_rules ? { custom_layout_rules: custom_layout_rules as unknown as Json } : {}),
+      ...(custom_structuring_rules
+        ? { custom_structuring_rules: custom_structuring_rules as unknown as Json }
+        : {}),
+      ...(custom_visual_aids ? { custom_visual_aids: custom_visual_aids as unknown as Json } : {}),
+      ...(custom_audio_aids ? { custom_audio_aids: custom_audio_aids as unknown as Json } : {}),
+      ...(custom_exercise_adaptations
+        ? { custom_exercise_adaptations: custom_exercise_adaptations as unknown as Json }
+        : {}),
+      ...(custom_evaluation_rules
+        ? { custom_evaluation_rules: custom_evaluation_rules as unknown as Json }
+        : {}),
     })
     .eq("id", id)
     .eq("teacher_id", teacherId)
@@ -145,16 +214,40 @@ export async function getNextTeacherProfileVersion(
   return (data?.version ?? 0) + 1;
 }
 
+function versionInsertPayload(version: Omit<TeacherProfileVersion, "id" | "created_at">) {
+  const dbPayload = buildDbPayload(version);
+  return {
+    profile_id: version.profile_id,
+    version: version.version,
+    source_profile_id: version.source_profile_id,
+    name: version.name,
+    description: version.description,
+    custom_prompt: version.custom_prompt,
+    custom_rules: version.custom_rules,
+    adaptation_level: version.adaptation_level,
+    is_active: version.is_active,
+    change_note: version.change_note,
+    created_by: version.created_by,
+    options: version.options as unknown as Json,
+    custom_strategy: (dbPayload.custom_strategy ?? emptyStrategy()) as unknown as Json,
+    custom_pedagogical_objectives: dbPayload.custom_pedagogical_objectives as unknown as Json,
+    custom_linguistic_rules: dbPayload.custom_linguistic_rules as unknown as Json,
+    custom_layout_rules: dbPayload.custom_layout_rules as unknown as Json,
+    custom_structuring_rules: dbPayload.custom_structuring_rules as unknown as Json,
+    custom_visual_aids: dbPayload.custom_visual_aids as unknown as Json,
+    custom_audio_aids: dbPayload.custom_audio_aids as unknown as Json,
+    custom_exercise_adaptations: dbPayload.custom_exercise_adaptations as unknown as Json,
+    custom_evaluation_rules: dbPayload.custom_evaluation_rules as unknown as Json,
+  };
+}
+
 export async function insertTeacherProfileVersion(
   client: Client,
   version: Omit<TeacherProfileVersion, "id" | "created_at">,
 ): Promise<TeacherProfileVersion> {
   const { data, error } = await client
     .from("teacher_profile_versions")
-    .insert({
-      ...version,
-      options: version.options as unknown as Json,
-    })
+    .insert(versionInsertPayload(version))
     .select("*")
     .single();
   if (error) throw error;

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Vérifie que la table learner_profiles existe (migration 005 appliquée).
+ * Vérifie les tables et colonnes critiques du schéma Inclusia.
  * Usage: node --env-file=.env.local scripts/verify-db-schema.mjs
  */
 
@@ -12,8 +12,8 @@ if (!url || !anonKey) {
   process.exit(1);
 }
 
-async function probe(table) {
-  const res = await fetch(`${url}/rest/v1/${table}?select=id&limit=1`, {
+async function probe(table, select = "id") {
+  const res = await fetch(`${url}/rest/v1/${table}?select=${select}&limit=1`, {
     headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
   });
   const text = await res.text();
@@ -23,32 +23,50 @@ async function probe(table) {
   } catch {
     code = null;
   }
-  return { ok: res.ok, status: res.status, code };
+  return { ok: res.ok, status: res.status, code, text };
+}
+
+const checks = [
+  { name: "learner_profiles", table: "learner_profiles" },
+  { name: "pedagogical_profiles (dimensions)", table: "pedagogical_profiles", select: "pedagogical_objectives" },
+  { name: "adaptations (production_options)", table: "adaptations", select: "production_options" },
+];
+
+let failed = 0;
+
+for (const check of checks) {
+  const result = await probe(check.table, check.select ?? "id");
+  if (result.ok) {
+    console.log(`✅ ${check.name}`);
+  } else if (result.code === "42703") {
+    console.error(`❌ ${check.name} — colonne manquante (migration non appliquée)`);
+    failed += 1;
+  } else if (result.code === "42P01") {
+    console.error(`❌ ${check.name} — table absente`);
+    failed += 1;
+  } else {
+    console.error(`❌ ${check.name} — ${result.status} ${result.code ?? result.text.slice(0, 120)}`);
+    failed += 1;
+  }
 }
 
 const learner = await probe("learner_profiles");
 const students = await probe("students");
 
-if (learner.ok) {
-  console.log("✅ Table public.learner_profiles — OK (migration 005 appliquée)");
-  if (students.ok) {
-    console.warn("⚠️  Ancienne table public.students encore visible — vérifiez le schéma");
-  }
-  process.exit(0);
+if (!learner.ok && students.ok) {
+  console.error("");
+  console.error("Correctif : exécutez supabase/migrations/005_anonymous_learner_profiles.sql");
+  failed += 1;
 }
 
-if (students.ok) {
-  console.error("❌ Migration 005 NON appliquée");
-  console.error("   → La table students existe encore, learner_profiles est absente.");
+if (failed > 0) {
   console.error("");
-  console.error("Correctif (2 min) :");
-  console.error("1. Ouvrez https://supabase.com/dashboard → votre projet → SQL Editor");
-  console.error("2. Collez et exécutez le fichier :");
-  console.error("   supabase/migrations/005_anonymous_learner_profiles.sql");
-  console.error("3. Relancez : npm run db:verify");
+  console.error("Appliquez les migrations manquantes :");
+  console.error("  npm run supabase:db:push");
+  console.error("  ou SQL Editor → supabase/migrations/*.sql");
   process.exit(1);
 }
 
-console.error("❌ Ni learner_profiles ni students trouvées.");
-console.error("   Exécutez d'abord supabase/migrations/001_initial_schema.sql");
-process.exit(1);
+console.log("");
+console.log("Schéma DB à jour pour Inclusia (profils + adaptations).");
+process.exit(0);

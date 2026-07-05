@@ -1,41 +1,82 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { AdaptationLevel } from "@/types/adaptation-level";
-import { ADAPTATION_LEVELS, isAdaptationLevel } from "@/types/adaptation-level";
-import { DEFAULT_PROFILE_OPTIONS } from "@/types/pedagogical-profile";
+import { ProfileRuleListEditor } from "@/features/profiles/components/profile-rule-list-editor";
+import { ProfileSystemPromptPreview } from "@/features/profiles/components/profile-system-prompt-preview";
+import { AdminProfileHistoryPanel } from "@/features/admin-profiles/components/admin-profile-history-panel";
+import {
+  ADMIN_PROFILE_TABS,
+  buildAdminProfileFormState,
+  dimensionColumnForTab,
+  type AdminProfileFormState,
+  type AdminProfileTab,
+} from "@/features/admin-profiles/components/admin-profile-form-state";
 import type { PedagogicalProfile } from "@/types/pedagogical-profile";
+import { DEFAULT_PROFILE_OPTIONS } from "@/types/pedagogical-profile";
+import { PROFILE_DIMENSION_SECTIONS } from "@/types/pedagogical-dimensions";
+import {
+  getProfileCategoryLabel,
+  isKnownProfileCategory,
+  PEDAGOGICAL_PROFILE_CATEGORIES,
+} from "@/types/pedagogical-profile-category";
+import {
+  getSortOrderLabel,
+  isKnownSortOrder,
+  PROFILE_SORT_ORDER_OPTIONS,
+} from "@/types/pedagogical-profile-sort-order";
+import { PEDAGOGICAL_OBJECTIVE_SUGGESTIONS } from "@/types/pedagogical-objective-suggestions";
+
+const SELECT_CLASS =
+  "min-h-[44px] w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30";
 
 const TEXTAREA =
   "flex min-h-[120px] w-full rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30";
 
+const TAB_BTN =
+  "min-h-[44px] shrink-0 rounded-lg border px-3 py-2 text-sm transition-colors";
+
+/** Défilement horizontal des onglets uniquement si l’écran est trop étroit. */
+const TAB_STRIP =
+  "flex min-w-0 gap-2 pb-1 max-xl:flex-nowrap max-xl:overflow-x-auto xl:flex-wrap xl:overflow-visible";
+
 interface AdminProfileEditorProps {
   initial?: PedagogicalProfile;
+}
+
+function sectionMetaForTab(tab: AdminProfileTab) {
+  const map: Record<string, (typeof PROFILE_DIMENSION_SECTIONS)[number]["id"]> = {
+    objectives: "objectives",
+    language: "linguistic_rules",
+    layout: "layout_rules",
+    structure: "structure_rules",
+    visual: "visual_aids",
+    audio: "audio_aids",
+    exercises: "exercise_adaptations",
+    evaluation: "evaluation_rules",
+  };
+  const id = map[tab];
+  return PROFILE_DIMENSION_SECTIONS.find((s) => s.id === id);
 }
 
 export function AdminProfileEditor({ initial }: AdminProfileEditorProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [form, setForm] = useState({
-    slug: initial?.slug ?? "",
-    name: initial?.name ?? "",
-    category: initial?.category ?? "learning",
-    description: initial?.description ?? "",
-    system_prompt: initial?.system_prompt ?? "",
-    user_prompt: initial?.user_prompt ?? "",
-    pedagogical_rules: initial?.pedagogical_rules ?? "",
-    adaptation_level: initial?.adaptation_level ?? "standard",
-    options: initial?.options ?? { ...DEFAULT_PROFILE_OPTIONS },
-    is_active: initial?.is_active ?? true,
-    sort_order: initial?.sort_order ?? 0,
-    change_note: "",
-  });
+  const [activeTab, setActiveTab] = useState<AdminProfileTab>("general");
+  const [form, setForm] = useState<AdminProfileFormState>(() => buildAdminProfileFormState(initial));
+  const previousDimensions = useMemo(
+    () => (initial ? buildAdminProfileFormState(initial) : undefined),
+    [initial],
+  );
+
+  function updateDimension(column: keyof AdminProfileFormState, rules: string[]) {
+    setForm((prev) => ({ ...prev, [column]: rules }));
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -46,134 +87,178 @@ export function AdminProfileEditor({ initial }: AdminProfileEditorProps) {
     const res = await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify(
+        initial
+          ? form
+          : {
+              ...form,
+              adaptation_level: "standard",
+              options: DEFAULT_PROFILE_OPTIONS,
+            },
+      ),
     });
     const data = await res.json();
     setLoading(false);
     if (!res.ok) {
-      setError(JSON.stringify(data.error) ?? "Erreur");
+      setError(typeof data.error === "string" ? data.error : JSON.stringify(data.error) ?? "Erreur");
       return;
     }
     router.push("/admin/profiles");
     router.refresh();
   }
 
+  const dimensionTab = dimensionColumnForTab(activeTab);
+  const sectionMeta = sectionMetaForTab(activeTab);
+
+  const promptDimensions = useMemo(
+    () => ({
+      pedagogical_objectives: form.pedagogical_objectives,
+      linguistic_rules: form.linguistic_rules,
+      layout_rules: form.layout_rules,
+      structuring_rules: form.structuring_rules,
+      visual_aids: form.visual_aids,
+      audio_aids: form.audio_aids,
+      exercise_adaptations: form.exercise_adaptations,
+      evaluation_rules: form.evaluation_rules,
+    }),
+    [
+      form.pedagogical_objectives,
+      form.linguistic_rules,
+      form.layout_rules,
+      form.structuring_rules,
+      form.visual_aids,
+      form.audio_aids,
+      form.exercise_adaptations,
+      form.evaluation_rules,
+    ],
+  );
+
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-3xl space-y-6">
+    <form onSubmit={handleSubmit} className="w-full space-y-4">
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
 
-      <Card>
-        <CardHeader><CardTitle>Identité</CardTitle></CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="name">Nom *</Label>
-            <Input id="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="slug">Slug *</Label>
-            <Input
-              id="slug"
-              disabled={Boolean(initial)}
-              value={form.slug}
-              onChange={(e) => setForm({ ...form, slug: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="category">Catégorie</Label>
-            <Input id="category" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="level">Niveau d&apos;adaptation</Label>
-            <select
-              id="level"
-              className="min-h-[44px] w-full rounded-lg border border-slate-200 px-3"
-              value={form.adaptation_level}
-              onChange={(e) => {
-                const value = e.target.value;
-                if (isAdaptationLevel(value)) {
-                  setForm({ ...form, adaptation_level: value });
-                }
-              }}
-            >
-              {ADAPTATION_LEVELS.map((l) => (
-                <option key={l.value} value={l.value}>{l.label}</option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-2 sm:col-span-2">
-            <Label htmlFor="description">Description</Label>
-            <textarea
-              id="description"
-              className={TEXTAREA}
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-            />
-          </div>
-        </CardContent>
-      </Card>
+      <div className={TAB_STRIP} role="tablist" aria-label="Sections du profil">
+        {ADMIN_PROFILE_TABS.filter((t) => t.id !== "history" || initial).map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === tab.id}
+            className={`${TAB_BTN} ${
+              activeTab === tab.id
+                ? "border-primary bg-primary/5 text-primary"
+                : "border-slate-200 bg-white text-slate-700"
+            }`}
+            onClick={() => setActiveTab(tab.id)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
-      <Card>
-        <CardHeader><CardTitle>Prompts</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="system_prompt">
-              Prompt système ({form.system_prompt.length} car.)
-            </Label>
-            <textarea
-              id="system_prompt"
-              className={TEXTAREA}
-              value={form.system_prompt}
-              onChange={(e) => setForm({ ...form, system_prompt: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="user_prompt">
-              Prompt utilisateur ({form.user_prompt.length} car.)
-            </Label>
-            <textarea
-              id="user_prompt"
-              className={TEXTAREA}
-              value={form.user_prompt}
-              onChange={(e) => setForm({ ...form, user_prompt: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="pedagogical_rules">
-              Règles pédagogiques ({form.pedagogical_rules.length} car.)
-            </Label>
-            <textarea
-              id="pedagogical_rules"
-              className={TEXTAREA}
-              value={form.pedagogical_rules}
-              onChange={(e) => setForm({ ...form, pedagogical_rules: e.target.value })}
-            />
-          </div>
-        </CardContent>
-      </Card>
+      <div className="w-full space-y-4">
+      {activeTab === "general" && (
+        <>
+          <Card>
+            <CardHeader><CardTitle>Identité</CardTitle></CardHeader>
+            <CardContent className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2 sm:col-span-2 sm:col-span-1">
+                <Label htmlFor="name">Nom *</Label>
+                <Input id="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="slug">Code profil *</Label>
+                <Input id="slug" disabled={Boolean(initial)} value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="category">Catégorie</Label>
+                <select
+                  id="category"
+                  className={SELECT_CLASS}
+                  value={form.category}
+                  onChange={(e) => setForm({ ...form, category: e.target.value })}
+                >
+                  {!isKnownProfileCategory(form.category) && form.category && (
+                    <option value={form.category}>{getProfileCategoryLabel(form.category)}</option>
+                  )}
+                  {PEDAGOGICAL_PROFILE_CATEGORIES.map((c) => (
+                    <option key={c.value} value={c.value}>{c.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="sort_order">Ordre d&apos;affichage</Label>
+                <select
+                  id="sort_order"
+                  className={SELECT_CLASS}
+                  value={form.sort_order}
+                  onChange={(e) => setForm({ ...form, sort_order: Number(e.target.value) })}
+                >
+                  {!isKnownSortOrder(form.sort_order) && (
+                    <option value={form.sort_order}>{getSortOrderLabel(form.sort_order)}</option>
+                  )}
+                  {PROFILE_SORT_ORDER_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex min-h-[44px] items-center gap-3 sm:col-span-2">
+                <input
+                  id="is_active"
+                  type="checkbox"
+                  checked={form.is_active}
+                  onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
+                />
+                <Label htmlFor="is_active" className="cursor-pointer font-normal">
+                  Profil actif
+                </Label>
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="description">Description</Label>
+                <textarea id="description" className={TEXTAREA} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+              </div>
+            </CardContent>
+          </Card>
 
-      {initial && (
+          <ProfileSystemPromptPreview name={form.name} dimensions={promptDimensions} />
+        </>
+      )}
+
+      {dimensionTab && sectionMeta && (
+        <ProfileRuleListEditor
+          title={sectionMeta.title}
+          description={sectionMeta.description}
+          placeholder={sectionMeta.placeholder}
+          value={form[dimensionTab] as string[]}
+          previousValue={previousDimensions?.[dimensionTab] as string[] | undefined}
+          suggestions={
+            sectionMeta.id === "objectives" ? PEDAGOGICAL_OBJECTIVE_SUGGESTIONS : undefined
+          }
+          onChange={(rules) => updateDimension(dimensionTab, rules)}
+        />
+      )}
+
+      {activeTab === "history" && initial && (
+        <Card>
+          <CardHeader><CardTitle>Historique des versions</CardTitle></CardHeader>
+          <CardContent>
+            <AdminProfileHistoryPanel profileId={initial.id} />
+          </CardContent>
+        </Card>
+      )}
+
+      {activeTab !== "history" && initial && (
         <div className="space-y-2">
           <Label htmlFor="change_note">Note de modification</Label>
-          <Input
-            id="change_note"
-            value={form.change_note}
-            onChange={(e) => setForm({ ...form, change_note: e.target.value })}
-          />
+          <Input id="change_note" value={form.change_note} onChange={(e) => setForm({ ...form, change_note: e.target.value })} />
         </div>
       )}
 
-      <div className="flex flex-wrap gap-3">
-        <Button type="submit" disabled={loading} className="min-h-[44px]">
+      {activeTab !== "history" && (
+        <Button type="submit" disabled={loading} className="min-h-[44px] w-full sm:w-auto">
           {loading ? "Enregistrement…" : "Enregistrer"}
         </Button>
-        <label className="flex min-h-[44px] items-center gap-2 text-base">
-          <input
-            type="checkbox"
-            checked={form.is_active}
-            onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
-          />
-          Profil actif
-        </label>
+      )}
       </div>
     </form>
   );
