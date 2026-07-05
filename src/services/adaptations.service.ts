@@ -1,8 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { findAdaptationsByTeacher } from "@/repositories/adaptations.repository";
+import { deleteAdaptation, findAdaptationsByTeacher } from "@/repositories/adaptations.repository";
 import { formatDate } from "@/lib/utils";
 import { getProfileName } from "@/lib/constants/profiles";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/database";
+
+type Client = SupabaseClient<Database>;
 
 export interface AdaptationListItem {
   id: string;
@@ -38,4 +42,16 @@ export async function getAdaptationsList(): Promise<AdaptationListItem[]> {
       createdAt: formatDate(row.created_at),
     };
   });
+}
+
+export async function deleteTeacherAdaptation(
+  client: Client,
+  teacherId: string,
+  adaptationId: string,
+) {
+  if (!isSupabaseConfigured()) {
+    throw new Error("Suppression indisponible en mode démo");
+  }
+
+  await deleteAdaptation(client, teacherId, adaptationId);
 }

@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { FileText, FileType2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { DocumentRowActions } from "@/features/documents/components/document-actions";
 import { formatDate, formatFileSize, cn } from "@/lib/utils";
 import type { Document } from "@/types";
 
@@ -33,14 +35,12 @@ export function DocumentList({ documents, highlightId }: DocumentListProps) {
 
   return (
     <>
-      {/* Mobile: cards */}
       <div className="space-y-3 md:hidden">
         {documents.map((doc) => (
           <DocumentMobileCard key={doc.id} doc={doc} highlighted={doc.id === highlightId} />
         ))}
       </div>
 
-      {/* Desktop: tableau */}
       <div className="hidden md:block overflow-x-auto rounded-xl border border-slate-200 bg-white">
         <table className="w-full text-left text-base">
           <thead className="border-b border-slate-200 bg-slate-50">
@@ -50,6 +50,7 @@ export function DocumentList({ documents, highlightId }: DocumentListProps) {
               <th className="px-4 py-3 font-semibold">Taille</th>
               <th className="px-4 py-3 font-semibold">Statut</th>
               <th className="px-4 py-3 font-semibold">Date</th>
+              <th className="px-4 py-3 font-semibold text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -64,11 +65,21 @@ export function DocumentList({ documents, highlightId }: DocumentListProps) {
                     doc.id === highlightId && "bg-primary/5 ring-2 ring-inset ring-primary/30",
                   )}
                 >
-                  <td className="px-4 py-3 font-medium">{doc.title}</td>
+                  <td className="px-4 py-3 font-medium">
+                    <Link
+                      href={`/documents/${doc.id}`}
+                      className="text-primary underline-offset-2 hover:underline"
+                    >
+                      {doc.title}
+                    </Link>
+                  </td>
                   <td className="px-4 py-3 uppercase text-slate-600">{doc.file_type}</td>
                   <td className="px-4 py-3 text-slate-600">{formatFileSize(doc.file_size)}</td>
                   <td className="px-4 py-3"><Badge variant={status.variant}>{status.label}</Badge></td>
                   <td className="px-4 py-3 text-slate-500">{formatDate(doc.created_at)}</td>
+                  <td className="px-4 py-3">
+                    <DocumentRowActions documentId={doc.id} documentTitle={doc.title} />
+                  </td>
                 </tr>
               );
             })}
@@ -98,9 +109,15 @@ function DocumentMobileCard({
             <FileType2 className="h-5 w-5 text-secondary" aria-hidden />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="font-medium text-base truncate">{doc.title}</p>
+            <Link
+              href={`/documents/${doc.id}`}
+              className="font-medium text-base text-primary underline-offset-2 hover:underline block truncate"
+            >
+              {doc.title}
+            </Link>
             <p className="text-base text-slate-500">{formatFileSize(doc.file_size)}</p>
           </div>
+          <DocumentRowActions documentId={doc.id} documentTitle={doc.title} />
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant={status.variant}>{status.label}</Badge>

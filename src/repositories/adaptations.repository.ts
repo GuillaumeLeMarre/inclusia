@@ -226,3 +226,13 @@ export async function updateFalcPictograms(
   if (error) throw error;
   return parseFalcPictograms(data.falc_pictograms);
 }
+
+export async function deleteAdaptation(client: Client, teacherId: string, adaptationId: string) {
+  const { error } = await client
+    .from("adaptations")
+    .delete()
+    .eq("id", adaptationId)
+    .eq("teacher_id", teacherId);
+
+  if (error) throw error;
+}

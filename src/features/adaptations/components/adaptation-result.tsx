@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdaptationRenderer } from "@/components/adaptations/AdaptationRenderer";
 import { AdaptationProfileSummary } from "@/features/adaptations/components/adaptation-profile-summary";
 import { AdaptationExportButton } from "@/features/adaptations/components/adaptation-export-button";
+import { AdaptationDeleteButton } from "@/features/adaptations/components/adaptation-actions";
 import { SchemaExportRenderer } from "@/features/adaptations/components/schema-export-renderer";
 import { DocumentSourceLinkCard } from "@/features/adaptations/components/document-source-link-card";
 import { FalcScoreBadge } from "@/features/falc/components/falc-score-badge";
@@ -73,19 +74,25 @@ export function AdaptationResult({
         {isFalc && adaptation.falc_score != null && (
           <FalcScoreBadge score={adaptation.falc_score} />
         )}
-        <AdaptationExportButton
-          adaptationId={adaptation.id}
-          adaptationLevel={adaptation.adaptation_level}
-          schema={schemaState.result}
-          ensureSchemaLoaded={async () => {
-            if (schemaState.result?.mermaidCode?.trim()) {
-              return schemaState.result.mermaidCode;
-            }
-            const loaded = await schemaState.loadDiagram(false);
-            return loaded?.mermaidCode?.trim() ?? null;
-          }}
-          className={isFalc && adaptation.falc_score != null ? "" : "sm:ml-auto"}
-        />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:ml-auto">
+          <AdaptationExportButton
+            adaptationId={adaptation.id}
+            adaptationLevel={adaptation.adaptation_level}
+            schema={schemaState.result}
+            ensureSchemaLoaded={async () => {
+              if (schemaState.result?.mermaidCode?.trim()) {
+                return schemaState.result.mermaidCode;
+              }
+              const loaded = await schemaState.loadDiagram(false);
+              return loaded?.mermaidCode?.trim() ?? null;
+            }}
+            className={isFalc && adaptation.falc_score != null ? "" : ""}
+          />
+          <AdaptationDeleteButton
+            adaptationId={adaptation.id}
+            adaptationTitle={documentTitle ?? "Adaptation"}
+          />
+        </div>
       </div>
 
       <FalcPictogramsPanel

@@ -53,7 +53,8 @@ const DEMO_DOCUMENTS: Document[] = [
     file_type: "pdf",
     file_size: 2457600,
     storage_path: "demo/revolution-francaise.pdf",
-    extracted_text: null,
+    extracted_text:
+      "La Révolution française (1789-1799) marque une rupture majeure dans l'histoire de France. Les causes sont multiples : crise financière, inégalités sociales, influence des Lumières…",
     page_count: 12,
     status: "ready",
     metadata: {},
@@ -68,7 +69,8 @@ const DEMO_DOCUMENTS: Document[] = [
     file_type: "docx",
     file_size: 512000,
     storage_path: "demo/fractions-maths.docx",
-    extracted_text: null,
+    extracted_text:
+      "Une fraction représente une partie d'un tout. Le numérateur indique combien de parts on prend, le dénominateur indique en combien de parts le tout est divisé.",
     page_count: 4,
     status: "ready",
     metadata: {},
@@ -119,6 +121,10 @@ export const getDemoStudents = getDemoProfiles;
 
 export function getDemoDocuments(): Document[] {
   return DEMO_DOCUMENTS;
+}
+
+export function getDemoDocumentById(documentId: string): Document | null {
+  return DEMO_DOCUMENTS.find((document) => document.id === documentId) ?? null;
 }
 
 export function getDemoActivity(): RecentActivity[] {

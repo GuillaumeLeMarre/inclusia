@@ -88,3 +88,28 @@ export async function updateDocumentStatus(
   if (error) throw error;
   return mapDocument(data);
 }
+
+export async function deleteDocument(client: Client, teacherId: string, documentId: string) {
+  const { error } = await client
+    .from("documents")
+    .delete()
+    .eq("id", documentId)
+    .eq("teacher_id", teacherId);
+
+  if (error) throw error;
+}
+
+export async function countAdaptationsForDocument(
+  client: Client,
+  teacherId: string,
+  documentId: string,
+) {
+  const { count, error } = await client
+    .from("adaptations")
+    .select("id", { count: "exact", head: true })
+    .eq("document_id", documentId)
+    .eq("teacher_id", teacherId);
+
+  if (error) throw error;
+  return count ?? 0;
+}

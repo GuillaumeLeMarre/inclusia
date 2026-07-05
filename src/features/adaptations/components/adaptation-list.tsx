@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Plus, Sparkles } from "lucide-react";
+import { AdaptationDeleteButton } from "@/features/adaptations/components/adaptation-actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,33 +28,43 @@ export function AdaptationList({ items }: AdaptationListProps) {
   return (
     <div className="space-y-3">
       {items.map((item) => (
-        <Link key={item.id} href={`/adaptations/${item.id}`} className="block">
-          <Card className="hover:shadow-sm transition-shadow">
-            <CardContent className="p-4 space-y-3 sm:space-y-0 sm:flex sm:items-center sm:gap-4">
-              <div className="flex items-start gap-3 sm:items-center sm:flex-1 sm:min-w-0">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                  <Sparkles className="h-5 w-5 text-primary" aria-hidden />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium text-base truncate">{item.title}</p>
-                  <p className="text-base text-slate-500">{item.subtitle}</p>
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {item.profiles.slice(0, 3).map((p) => (
-                      <Badge key={p} variant="outline">{p}</Badge>
-                    ))}
-                    {item.profiles.length > 3 && (
-                      <Badge variant="outline">+{item.profiles.length - 3}</Badge>
-                    )}
-                  </div>
+        <Card key={item.id} className="hover:shadow-sm transition-shadow">
+          <CardContent className="p-4 space-y-3 sm:space-y-0 sm:flex sm:items-center sm:gap-4">
+            <Link
+              href={`/adaptations/${item.id}`}
+              className="flex items-start gap-3 sm:items-center sm:flex-1 sm:min-w-0"
+            >
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <Sparkles className="h-5 w-5 text-primary" aria-hidden />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-medium text-base truncate text-primary underline-offset-2 hover:underline">
+                  {item.title}
+                </p>
+                <p className="text-base text-slate-500">{item.subtitle}</p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {item.profiles.slice(0, 3).map((profile) => (
+                    <Badge key={profile} variant="outline">{profile}</Badge>
+                  ))}
+                  {item.profiles.length > 3 && (
+                    <Badge variant="outline">+{item.profiles.length - 3}</Badge>
+                  )}
                 </div>
               </div>
-              <div className="flex items-center justify-between gap-2 sm:flex-col sm:items-end sm:shrink-0">
+            </Link>
+            <div className="flex items-center justify-between gap-2 sm:flex-col sm:items-end sm:shrink-0">
+              <div className="flex items-center gap-2 sm:flex-col sm:items-end">
                 {item.isDemo && <Badge variant="accent">Démo</Badge>}
                 <span className="text-base text-slate-400">{item.createdAt}</span>
               </div>
-            </CardContent>
-          </Card>
-        </Link>
+              <AdaptationDeleteButton
+                adaptationId={item.id}
+                adaptationTitle={item.title}
+                variant="icon"
+              />
+            </div>
+          </CardContent>
+        </Card>
       ))}
     </div>
   );

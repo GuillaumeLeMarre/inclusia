@@ -50,6 +50,13 @@ export function AdaptationWizard({
     else if (slug) setPedagogicalSelection(`slug:${slug}`);
   }, [searchParams]);
 
+  useEffect(() => {
+    const preselectedDocumentId = searchParams.get("documentId");
+    if (preselectedDocumentId && documents.some((document) => document.id === preselectedDocumentId)) {
+      setDocumentId(preselectedDocumentId);
+    }
+  }, [searchParams, documents]);
+
   function parseSelection() {
     const [kind, id] = pedagogicalSelection.split(":");
     if (kind === "teacher") return { teacherProfileId: id };
