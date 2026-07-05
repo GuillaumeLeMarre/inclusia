@@ -4,7 +4,9 @@ import { inferDiagramTypeFromText } from "@/lib/mermaid/infer-diagram-type";
 import { reconcileDiagramType } from "@/lib/mermaid/mermaid-utils";
 import { generateDemoMermaid } from "@/services/mindmap/demo-mermaid.service";
 import { getOpenAIClient, getOpenAIModel } from "@/services/ai/openai.client";
+import { extractAiUsageFromCompletion } from "@/services/ai/ai-usage.service";
 import type { MermaidGenerationResult } from "@/types/mindmap";
+import type { AiUsageEntry } from "@/types/ai-usage";
 
 export type { MermaidGenerationResult };
 
@@ -14,10 +16,14 @@ function getMindmapModel(): string {
   return process.env.OPENAI_MINDMAP_MODEL ?? getOpenAIModel();
 }
 
+export interface MindmapAiResult extends MermaidGenerationResult {
+  usage: AiUsageEntry | null;
+}
+
 export async function generateMermaidFromCourse(
   courseText: string,
   options?: { falcMode?: boolean },
-): Promise<MermaidGenerationResult> {
+): Promise<MindmapAiResult> {
   const text = courseText.trim().slice(0, 2400);
   if (!text) {
     throw new Error("Contenu du cours insuffisant pour générer un schéma.");
@@ -26,7 +32,7 @@ export async function generateMermaidFromCourse(
   const falcMode = options?.falcMode ?? false;
   const openai = getOpenAIClient();
   if (!openai) {
-    return generateDemoMermaid(text);
+    return { ...generateDemoMermaid(text), usage: null };
   }
 
   const suggestedType = inferDiagramTypeFromText(text);
@@ -35,8 +41,9 @@ export async function generateMermaidFromCourse(
     : MERMAID_SYSTEM_PROMPT;
 
   try {
+    const model = getMindmapModel();
     const response = await openai.chat.completions.create({
-      model: getMindmapModel(),
+      model,
       messages: [
         { role: "system", content: systemPrompt },
         {
@@ -51,16 +58,18 @@ export async function generateMermaidFromCourse(
 
     const raw = response.choices[0]?.message?.content ?? "";
     const parsed = parseMermaidAiResponse(raw);
+    const usage = extractAiUsageFromCompletion(response, "mindmap", model);
 
     if (parsed) {
       return {
         ...parsed,
         diagramType: reconcileDiagramType(parsed.diagramType, parsed.mermaidCode),
+        usage,
       };
     }
 
-    return generateDemoMermaid(text);
+    return { ...generateDemoMermaid(text), usage };
   } catch {
-    return generateDemoMermaid(text);
+    return { ...generateDemoMermaid(text), usage: null };
   }
 }

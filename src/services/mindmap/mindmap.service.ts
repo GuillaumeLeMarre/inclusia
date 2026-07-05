@@ -13,6 +13,7 @@ import {
 } from "@/lib/mermaid/parse-mermaid-response";
 import { normalizeMindmapRootLabel } from "@/lib/mermaid/normalize-mindmap-root-label";
 import { generateMermaidFromCourse } from "@/services/ai/mindmap.ai.service";
+import { recordAiUsage } from "@/services/ai/ai-usage.service";
 import { generateDemoMermaid } from "@/services/mindmap/demo-mermaid.service";
 import {
   findAdaptationById,
@@ -29,13 +30,20 @@ function buildSourceText(adaptation: Adaptation): string {
 
 async function generateMermaidForAdaptation(
   adaptation: Adaptation,
+  teacherId: string,
+  client: Client,
 ): Promise<MermaidGenerationResult> {
   const source = buildSourceText(adaptation);
   const falcMode = adaptation.adaptation_level === "falc";
 
   if (source) {
     try {
-      return await generateMermaidFromCourse(source, { falcMode });
+      const generated = await generateMermaidFromCourse(source, { falcMode });
+      if (generated.usage) {
+        await recordAiUsage(client, teacherId, generated.usage);
+      }
+      const { usage: _usage, ...result } = generated;
+      return result;
     } catch {
       // Fallback ci-dessous
     }
@@ -99,7 +107,7 @@ export async function getOrCreateMindmap(
     throw new ApiError("Aucun contenu disponible pour générer le schéma.", 400);
   }
 
-  const generated = await generateMermaidForAdaptation(adaptation);
+  const generated = await generateMermaidForAdaptation(adaptation, teacherId, client);
   void persistMermaid(client, teacherId, adaptationId, generated);
 
   return generated;

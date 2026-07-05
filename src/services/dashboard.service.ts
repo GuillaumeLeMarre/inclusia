@@ -6,6 +6,7 @@ import {
   getDemoStats,
   getDemoProfiles,
 } from "@/services/demo/demo-data.service";
+import { getTeacherAiUsageStats } from "@/services/ai/ai-usage.service";
 import type { DashboardStats, Document, RecentActivity, LearnerProfile } from "@/types";
 
 import type { Tables } from "@/types/database";
@@ -49,12 +50,15 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   ]);
 
   const adaptationsCount = adaptations.count ?? 0;
+  const aiUsage = await getTeacherAiUsageStats(supabase, user.id);
 
   return {
     profilesCount: profiles.count ?? 0,
     adaptationsCount,
     documentsCount: documents.count ?? 0,
     estimatedTimeSavedMinutes: adaptationsCount * 20,
+    aiTokensUsed: aiUsage.totalTokens,
+    aiEstimatedCostEur: aiUsage.estimatedCostEur,
   };
 }
 

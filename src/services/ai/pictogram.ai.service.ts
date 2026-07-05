@@ -1,7 +1,9 @@
 import { PICTOGRAM_CONCEPTS_PROMPT } from "@/prompts/falc/pictogram.prompt";
 import { extractPictogramConcepts } from "@/lib/falc/extract-pictogram-concepts";
 import { getOpenAIClient, getOpenAIModel } from "@/services/ai/openai.client";
+import { extractAiUsageFromCompletion } from "@/services/ai/ai-usage.service";
 import type { KeywordItem } from "@/types";
+import type { AiUsageEntry } from "@/types/ai-usage";
 
 const MAX_SOURCE_CHARS = 6000;
 
@@ -19,20 +21,30 @@ function parseConceptsJson(raw: string): string[] | null {
   }
 }
 
+export interface PictogramConceptsAiResult {
+  concepts: string[];
+  usage: AiUsageEntry | null;
+}
+
 export async function extractPictogramConceptsWithAI(
   content: string,
   keywords?: KeywordItem[] | null,
-): Promise<string[]> {
+): Promise<PictogramConceptsAiResult> {
   const fallback = extractPictogramConcepts(content, keywords);
   const openai = getOpenAIClient();
-  if (!openai) return fallback;
+  if (!openai) {
+    return { concepts: fallback, usage: null };
+  }
 
   const text = content.trim().slice(0, MAX_SOURCE_CHARS);
-  if (!text) return fallback;
+  if (!text) {
+    return { concepts: fallback, usage: null };
+  }
 
   try {
+    const model = getOpenAIModel();
     const response = await openai.chat.completions.create({
-      model: getOpenAIModel(),
+      model,
       messages: [
         { role: "system", content: PICTOGRAM_CONCEPTS_PROMPT },
         { role: "user", content: text },
@@ -44,10 +56,14 @@ export async function extractPictogramConceptsWithAI(
 
     const raw = response.choices[0]?.message?.content ?? "";
     const concepts = parseConceptsJson(raw);
-    if (concepts?.length) return concepts;
-  } catch {
-    // fallback heuristique
-  }
+    const usage = extractAiUsageFromCompletion(response, "pictograms", model);
 
-  return fallback;
+    if (concepts?.length) {
+      return { concepts, usage };
+    }
+
+    return { concepts: fallback, usage };
+  } catch {
+    return { concepts: fallback, usage: null };
+  }
 }

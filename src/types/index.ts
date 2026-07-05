@@ -169,6 +169,8 @@ export interface DashboardStats {
   adaptationsCount: number;
   documentsCount: number;
   estimatedTimeSavedMinutes: number;
+  aiTokensUsed: number;
+  aiEstimatedCostEur: number;
 }
 
 export interface RecentActivity {

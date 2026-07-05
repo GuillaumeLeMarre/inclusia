@@ -14,6 +14,7 @@ import {
 } from "@/services/adaptation/demo-adaptation.service";
 import { generateAdaptationWithAI } from "@/services/ai/adaptation.ai.service";
 import { generateFalcFromText } from "@/services/ai/falc.ai.service";
+import { AiUsageTracker } from "@/services/ai/ai-usage.service";
 import {
   ProfileResolutionError,
   resolvePedagogicalProfile,
@@ -169,11 +170,16 @@ export async function runAdaptationEngine(
 
   const isDemo = shouldUseDemoAi();
   let output: AdaptationOutput;
+  const usageTracker = new AiUsageTracker();
 
   try {
-    output = isDemo
-      ? generateDemoAdaptation(profile, document.title, sourceText, slugs)
-      : await generateAdaptationWithAI(system, user);
+    if (isDemo) {
+      output = generateDemoAdaptation(profile, document.title, sourceText, slugs);
+    } else {
+      const aiResult = await generateAdaptationWithAI(system, user);
+      output = aiResult.output;
+      usageTracker.add(aiResult.usage);
+    }
   } catch {
     output = generateDemoAdaptation(profile, document.title, sourceText, slugs);
   }
@@ -183,6 +189,7 @@ export async function runAdaptationEngine(
 
   if (adaptationLevel === "falc") {
     const falc = await generateFalcFromText(output.adapted_content);
+    usageTracker.add(falc.usage);
     falcContent = falc.content;
     falcScore = falc.score;
   }
@@ -195,7 +202,11 @@ export async function runAdaptationEngine(
       const { serializeMindmapResult } = await import("@/lib/mermaid/parse-mermaid-response");
       const { injectFalcSchemaSection } = await import("@/lib/falc/inject-falc-schema");
 
-      const schema = await generateMermaidFromCourse(falcContent, { falcMode: true });
+      const { usage: schemaUsage, ...schema } = await generateMermaidFromCourse(
+        falcContent,
+        { falcMode: true },
+      );
+      usageTracker.add(schemaUsage);
       mindmapMermaid = serializeMindmapResult(schema);
       falcContent = injectFalcSchemaSection(falcContent, schema.title);
     } catch (err) {
@@ -208,11 +219,13 @@ export async function runAdaptationEngine(
     try {
       const { generateFalcPictograms } = await import("@/services/falc/falc-pictogram.service");
       const contentForPictograms = falcContent ?? output.adapted_content;
-      falcPictograms = await generateFalcPictograms({
+      const pictogramResult = await generateFalcPictograms({
         content: contentForPictograms,
         keywords: output.keywords,
         summary: output.summary,
       });
+      usageTracker.add(pictogramResult.usage);
+      falcPictograms = pictogramResult.data;
       if (!falcPictograms.items.length) {
         falcPictograms = null;
       }
@@ -231,6 +244,14 @@ export async function runAdaptationEngine(
     profileSlugs: slugs,
     mergedStrategy,
   });
+
+  if (!isDemo) {
+    try {
+      await usageTracker.persist(client, input.teacherId);
+    } catch (err) {
+      console.warn("[ai-usage] Enregistrement consommation échoué:", err);
+    }
+  }
 
   return createAdaptation(client, {
     teacherId: input.teacherId,

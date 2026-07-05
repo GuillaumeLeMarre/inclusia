@@ -109,6 +109,8 @@ export function getDemoStats(): DashboardStats {
     adaptationsCount: 7,
     documentsCount: DEMO_DOCUMENTS.length,
     estimatedTimeSavedMinutes: 145,
+    aiTokensUsed: 128_450,
+    aiEstimatedCostEur: 0.0382,
   };
 }
 

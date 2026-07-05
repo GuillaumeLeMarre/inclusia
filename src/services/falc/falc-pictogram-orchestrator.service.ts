@@ -44,10 +44,16 @@ export async function getOrGenerateFalcPictograms(
     summary: adaptation.summary,
   });
 
-  if (!pictograms.items.length) {
+  if (!pictograms.data.items.length) {
     throw new ApiError("Aucun pictogramme trouvé pour ce contenu.", 404);
   }
 
-  await updateFalcPictograms(client, teacherId, adaptationId, pictograms);
-  return pictograms;
+  await updateFalcPictograms(client, teacherId, adaptationId, pictograms.data);
+
+  if (pictograms.usage) {
+    const { recordAiUsage } = await import("@/services/ai/ai-usage.service");
+    await recordAiUsage(client, teacherId, pictograms.usage);
+  }
+
+  return pictograms.data;
 }

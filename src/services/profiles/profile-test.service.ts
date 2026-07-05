@@ -24,7 +24,7 @@ export async function testProfilePrompt(
       documentTitle: "Test de prompt",
     });
 
-  const output = await generateAdaptationWithAI(system, user);
+  const aiResult = await generateAdaptationWithAI(system, user);
 
   return {
     profileSource,
@@ -32,6 +32,6 @@ export async function testProfilePrompt(
     options,
     profileName: resolved.name,
     systemPromptPreview: system.slice(0, 500),
-    output,
+    output: aiResult.output,
   };
 }

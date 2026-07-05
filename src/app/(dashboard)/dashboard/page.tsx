@@ -4,6 +4,7 @@ import { AppHeader } from "@/components/layout/app-header";
 import { PageContainer } from "@/components/layout/page-container";
 import { Button } from "@/components/ui/button";
 import { StatsCards } from "@/features/dashboard/components/stats-cards";
+import { AiUsageStatsCard } from "@/features/dashboard/components/ai-usage-stats-card";
 import { RecentActivityList } from "@/features/dashboard/components/recent-activity";
 import { getDashboardStats, getRecentActivity } from "@/services/dashboard.service";
 
@@ -29,6 +30,7 @@ export default async function DashboardPage() {
       />
       <PageContainer className="space-y-6 md:space-y-8">
         <StatsCards stats={stats} />
+        <AiUsageStatsCard stats={stats} />
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8">
           <RecentActivityList activities={activity} />
           <div className="rounded-xl border border-slate-200 bg-white p-4 md:p-6">

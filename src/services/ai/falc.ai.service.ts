@@ -1,7 +1,9 @@
 import { FALC_SYSTEM_PROMPT } from "@/prompts/falc/falc-system.prompt";
 import { validateFalcContent } from "@/lib/falc/falc-validator";
 import { getOpenAIClient, getOpenAIModel } from "@/services/ai/openai.client";
+import { extractAiUsageFromCompletion } from "@/services/ai/ai-usage.service";
 import type { FalcGenerationResult } from "@/types/falc";
+import type { AiUsageEntry } from "@/types/ai-usage";
 
 const MAX_SOURCE_CHARS = 10000;
 
@@ -30,7 +32,11 @@ ${sentences.map((s) => `- ${s}`).join("\n")}
 - Chaque phrase contient une seule idée.`;
 }
 
-export async function generateFalcFromText(sourceText: string): Promise<FalcGenerationResult> {
+export interface FalcAiResult extends FalcGenerationResult {
+  usage: AiUsageEntry | null;
+}
+
+export async function generateFalcFromText(sourceText: string): Promise<FalcAiResult> {
   const text = sourceText.trim().slice(0, MAX_SOURCE_CHARS);
   if (!text) {
     throw new Error("Contenu insuffisant pour générer du FALC.");
@@ -38,13 +44,15 @@ export async function generateFalcFromText(sourceText: string): Promise<FalcGene
 
   const openai = getOpenAIClient();
   let content: string;
+  let usage: AiUsageEntry | null = null;
 
   if (!openai) {
     content = buildDemoFalcContent(text);
   } else {
     try {
+      const model = getOpenAIModel();
       const response = await openai.chat.completions.create({
-        model: getOpenAIModel(),
+        model,
         messages: [
           { role: "system", content: FALC_SYSTEM_PROMPT },
           {
@@ -55,6 +63,7 @@ export async function generateFalcFromText(sourceText: string): Promise<FalcGene
         temperature: 0.3,
         max_tokens: 4000,
       });
+      usage = extractAiUsageFromCompletion(response, "falc", model);
       content = response.choices[0]?.message?.content?.trim() ?? "";
       if (!content) throw new Error("Réponse FALC vide");
     } catch {
@@ -68,6 +77,7 @@ export async function generateFalcFromText(sourceText: string): Promise<FalcGene
     score: validation.score,
     label: validation.label,
     metrics: validation.metrics,
+    usage,
   };
 }
 

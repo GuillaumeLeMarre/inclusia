@@ -2,6 +2,7 @@ import { extractPictogramConceptsWithAI } from "@/services/ai/pictogram.ai.servi
 import { searchArasaacPictograms } from "@/services/pictograms/arasaac.provider";
 import type { KeywordItem } from "@/types";
 import type { FalcPictogramsData } from "@/types/falc";
+import type { AiUsageEntry } from "@/types/ai-usage";
 
 export interface GeneratePictogramsInput {
   content: string;
@@ -10,18 +11,26 @@ export interface GeneratePictogramsInput {
   locale?: string;
 }
 
+export interface GeneratePictogramsResult {
+  data: FalcPictogramsData;
+  usage: AiUsageEntry | null;
+}
+
 export async function generateFalcPictograms(
   input: GeneratePictogramsInput,
-): Promise<FalcPictogramsData> {
+): Promise<GeneratePictogramsResult> {
   const locale = input.locale ?? "fr";
   const sourceText = [input.summary, input.content].filter(Boolean).join("\n\n");
 
-  const concepts = await extractPictogramConceptsWithAI(sourceText, input.keywords);
-  const items = await searchArasaacPictograms(concepts, locale);
+  const extracted = await extractPictogramConceptsWithAI(sourceText, input.keywords);
+  const items = await searchArasaacPictograms(extracted.concepts, locale);
 
   return {
-    items,
-    generatedAt: new Date().toISOString(),
-    locale,
+    data: {
+      items,
+      generatedAt: new Date().toISOString(),
+      locale,
+    },
+    usage: extracted.usage,
   };
 }
