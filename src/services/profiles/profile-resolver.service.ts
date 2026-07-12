@@ -140,6 +140,21 @@ export async function resolvePedagogicalProfile(
     systemBase = await loadSystemProfileBySlug(client, slugList[0]!);
   } else if (input.pedagogicalProfileId) {
     systemBase = await loadSystemProfileById(client, input.pedagogicalProfileId);
+  } else if (input.teacherProfileId && input.teacherId) {
+    const teacherProfile = await findTeacherProfileById(
+      client,
+      input.teacherId,
+      input.teacherProfileId,
+    );
+    if (!teacherProfile) {
+      throw new ProfileResolutionError("Profil personnel introuvable");
+    }
+    if (!teacherProfile.source_profile_id) {
+      throw new ProfileResolutionError(
+        "Profil personnel sans profil source associé.",
+      );
+    }
+    systemBase = await loadSystemProfileById(client, teacherProfile.source_profile_id);
   } else {
     throw new ProfileResolutionError("Aucun profil pédagogique spécifié");
   }

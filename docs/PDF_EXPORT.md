@@ -91,6 +91,8 @@ Le schéma est inséré comme bloc `schema` dans le PDF avec le libellé du mind
 
 **Mise en page** : le titre `## Schéma`, le paragraphe d’introduction et l’image forment un bloc indivisible. S’ils ne tiennent pas sur la page courante, un saut de page est ajouté avant le titre pour les garder ensemble.
 
+**Paragraphes orphelins** : les paragraphes, citations et items de liste évitent les veuves/orphelines (une seule ligne isolée en haut ou en bas de page). Un paragraphe court qui tient sur une page entière mais pas dans l’espace restant est déplacé sur la page suivante. Logique : `paragraph-pdf-layout.ts` + `markdown-pdf-renderer.ts`.
+
 ## Thème FALC dans le PDF
 
 Quand `falcMode: true` :
@@ -116,6 +118,7 @@ src/
 │   ├── resolve-export-schema.ts     # Schéma depuis l’adaptation
 │   ├── adaptation-export-filename.ts # Nom de fichier export
 │   ├── schema-section-pdf-layout.ts  # Bloc schéma indivisible (saut de page)
+│   ├── paragraph-pdf-layout.ts       # Anti-veuves/orphelines paragraphes
 │   └── export-adaptation-pdf-client.ts
 ├── services/adaptation/
 │   └── adaptation-pdf.service.ts    # Orchestration PDF

@@ -169,6 +169,56 @@ export async function createAdaptation(client: Client, input: AdaptationResultIn
   return mapAdaptation(data);
 }
 
+export async function updateAdaptation(
+  client: Client,
+  teacherId: string,
+  adaptationId: string,
+  input: AdaptationResultInput,
+) {
+  const { data, error } = await client
+    .from("adaptations")
+    .update({
+      profile_slugs: input.profileSlugs,
+      pedagogical_profile_slugs: input.pedagogicalProfileSlugs ?? input.profileSlugs,
+      adaptation_quality_score: input.adaptationQualityScore ?? null,
+      status: input.status,
+      adaptation_level: input.adaptationLevel,
+      falc_score: input.falcScore ?? null,
+      falc_content: input.falcContent ?? null,
+      generate_pictograms: input.generatePictograms ?? false,
+      falc_pictograms: (input.falcPictograms ?? null) as unknown as Json,
+      mindmap_mermaid: input.mindmapMermaid ?? null,
+      adapted_content: input.adaptedContent,
+      summary: input.summary,
+      memory_sheet: input.memorySheet,
+      quiz: input.quiz as unknown as Json,
+      keywords: input.keywords as unknown as Json,
+      simplified_questions: input.simplifiedQuestions as unknown as Json,
+      adapted_instructions: input.adaptedInstructions,
+      mindmap: input.mindmap as unknown as Json,
+      audio_script: input.audioScript,
+      processing_time_ms: input.processingTimeMs,
+      is_demo: input.isDemo,
+      pedagogical_profile_id: input.pedagogicalProfileId ?? null,
+      teacher_profile_id: input.teacherProfileId ?? null,
+      profile_source: input.profileSource ?? null,
+      production_options: (input.productionOptions ?? {
+        generate_summary: true,
+        generate_quiz: true,
+        generate_mindmap: true,
+        generate_audio: false,
+        generate_falc: false,
+      }) as unknown as Json,
+    })
+    .eq("id", adaptationId)
+    .eq("teacher_id", teacherId)
+    .select("*")
+    .single();
+
+  if (error) throw error;
+  return mapAdaptation(data);
+}
+
 export async function updateMindmapMermaid(
   client: Client,
   teacherId: string,

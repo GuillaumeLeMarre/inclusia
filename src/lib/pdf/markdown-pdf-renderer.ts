@@ -5,6 +5,10 @@ import {
   ensureSchemaSectionFitsOnPage,
   estimateSchemaBlockHeight,
 } from "@/lib/pdf/schema-section-pdf-layout";
+import {
+  countLinesForPageChunk,
+  shouldStartBlockOnFreshPage,
+} from "@/lib/pdf/paragraph-pdf-layout";
 
 export interface MarkdownPdfTheme {
   falcMode: boolean;
@@ -29,16 +33,36 @@ function pageHeight(doc: jsPDF): number {
   return doc.internal.pageSize.getHeight();
 }
 
-function ensureSpace(ctx: RenderContext, needed: number): void {
-  if (ctx.y + needed <= pageHeight(ctx.doc) - ctx.theme.margin) return;
+function usablePageHeight(ctx: RenderContext): number {
+  return pageHeight(ctx.doc) - ctx.theme.margin * 2;
+}
+
+function remainingHeight(ctx: RenderContext): number {
+  return pageHeight(ctx.doc) - ctx.theme.margin - ctx.y;
+}
+
+function startFreshPage(ctx: RenderContext): void {
   ctx.doc.addPage();
   ctx.y = ctx.theme.margin;
 }
 
+function ensureSpace(ctx: RenderContext, needed: number): void {
+  if (ctx.y + needed <= pageHeight(ctx.doc) - ctx.theme.margin) return;
+  startFreshPage(ctx);
+}
+
 function ensureBlockFits(ctx: RenderContext, neededHeight: number): void {
-  if (neededHeight <= pageHeight(ctx.doc) - ctx.theme.margin - ctx.y) return;
-  ctx.doc.addPage();
-  ctx.y = ctx.theme.margin;
+  if (neededHeight <= remainingHeight(ctx)) return;
+  startFreshPage(ctx);
+}
+
+function ensureParagraphBlockFits(
+  ctx: RenderContext,
+  blockHeight: number,
+): void {
+  if (shouldStartBlockOnFreshPage(blockHeight, remainingHeight(ctx), usablePageHeight(ctx))) {
+    startFreshPage(ctx);
+  }
 }
 
 function setSpanFont(doc: jsPDF, span: InlineSpan, size: number): void {
@@ -56,6 +80,136 @@ function setSpanFont(doc: jsPDF, span: InlineSpan, size: number): void {
   doc.setFontSize(size);
 }
 
+function breakSpansIntoLines(
+  ctx: RenderContext,
+  spans: InlineSpan[],
+  options: {
+    fontSize: number;
+    indent?: number;
+    maxWidth?: number;
+  },
+): InlineSpan[][] {
+  const indent = options.indent ?? 0;
+  const maxWidth = options.maxWidth ?? ctx.theme.maxWidth - indent;
+  const startX = ctx.x + indent;
+  let x = startX;
+  let currentLine: InlineSpan[] = [];
+  const lines: InlineSpan[][] = [];
+
+  const pushWord = (span: InlineSpan, word: string) => {
+    const last = currentLine[currentLine.length - 1];
+    if (
+      last
+      && last.bold === span.bold
+      && last.italic === span.italic
+      && last.code === span.code
+    ) {
+      last.text += word;
+      return;
+    }
+    currentLine.push({ ...span, text: word });
+  };
+
+  for (const span of spans) {
+    const words = span.text.split(/(\s+)/).filter((part) => part.length > 0);
+    for (const word of words) {
+      setSpanFont(ctx.doc, span, options.fontSize);
+      const width = ctx.doc.getTextWidth(word);
+
+      if (x + width > startX + maxWidth && x > startX) {
+        lines.push(currentLine);
+        currentLine = [];
+        x = startX;
+      }
+
+      pushWord(span, word);
+      x += width;
+    }
+  }
+
+  if (currentLine.length > 0) {
+    lines.push(currentLine);
+  }
+
+  return lines;
+}
+
+function estimateSpanBlockHeight(
+  ctx: RenderContext,
+  spans: InlineSpan[],
+  options: {
+    fontSize: number;
+    lineHeight: number;
+    indent?: number;
+    maxWidth?: number;
+    trailingGap?: number;
+  },
+): number {
+  const lines = breakSpansIntoLines(ctx, spans, options);
+  const trailingGap = options.trailingGap ?? 0;
+  return Math.max(lines.length, 1) * options.lineHeight + trailingGap;
+}
+
+function drawSpanLine(
+  ctx: RenderContext,
+  spans: InlineSpan[],
+  options: {
+    fontSize: number;
+    indent?: number;
+  },
+): void {
+  const indent = options.indent ?? 0;
+  let x = ctx.x + indent;
+
+  for (const span of spans) {
+    setSpanFont(ctx.doc, span, options.fontSize);
+    ctx.doc.text(span.text, x, ctx.y);
+    x += ctx.doc.getTextWidth(span.text);
+  }
+}
+
+function renderSpanLinesWithoutOrphans(
+  ctx: RenderContext,
+  lines: InlineSpan[][],
+  options: {
+    fontSize: number;
+    lineHeight: number;
+    indent?: number;
+    maxWidth?: number;
+  },
+): void {
+  if (lines.length === 0) {
+    ctx.y += options.lineHeight;
+    return;
+  }
+
+  let index = 0;
+  while (index < lines.length) {
+    let linesThatFit = Math.floor(remainingHeight(ctx) / options.lineHeight);
+    if (linesThatFit < 1) {
+      startFreshPage(ctx);
+      linesThatFit = Math.floor(remainingHeight(ctx) / options.lineHeight);
+    }
+
+    const linesLeft = lines.length - index;
+    const chunkSize = countLinesForPageChunk(linesLeft, linesThatFit);
+    if (chunkSize === 0) {
+      startFreshPage(ctx);
+      continue;
+    }
+
+    for (let offset = 0; offset < chunkSize; offset += 1) {
+      drawSpanLine(ctx, lines[index + offset]!, options);
+      ctx.y += options.lineHeight;
+    }
+
+    index += chunkSize;
+    if (index < lines.length) {
+      startFreshPage(ctx);
+    }
+  }
+}
+
 function renderSpans(
   ctx: RenderContext,
   spans: InlineSpan[],
@@ -64,8 +218,21 @@ function renderSpans(
     lineHeight: number;
     indent?: number;
     maxWidth?: number;
+    preventOrphans?: boolean;
+    trailingGap?: number;
   },
 ): void {
+  if (options.preventOrphans ?? false) {
+    const blockHeight = estimateSpanBlockHeight(ctx, spans, options);
+    ensureParagraphBlockFits(ctx, blockHeight);
+    const lines = breakSpansIntoLines(ctx, spans, options);
+    renderSpanLinesWithoutOrphans(ctx, lines, options);
+    if (options.trailingGap) {
+      ctx.y += options.trailingGap;
+    }
+    return;
+  }
+
   const indent = options.indent ?? 0;
   const maxWidth = options.maxWidth ?? ctx.theme.maxWidth - indent;
   let x = ctx.x + indent;
@@ -106,16 +273,41 @@ function renderCourseTitleBlock(ctx: RenderContext, spans: InlineSpan[]): void {
   const lineHeight = fontSize * 1.3;
   const centerX = ctx.doc.internal.pageSize.getWidth() / 2;
   const text = spansToPlainText(spans);
-  const lines = ctx.doc.splitTextToSize(text, ctx.theme.maxWidth) as string[];
+  const plainLines = ctx.doc.splitTextToSize(text, ctx.theme.maxWidth) as string[];
+  const lines = plainLines.map((line) => [{ text: line, bold: true } satisfies InlineSpan]);
 
   ctx.y += ctx.theme.falcMode ? 4 : 0;
 
-  for (const line of lines) {
-    ensureSpace(ctx, lineHeight);
-    ctx.doc.setFont("helvetica", "bold");
-    ctx.doc.setFontSize(fontSize);
-    ctx.doc.text(line, centerX, ctx.y, { align: "center" });
-    ctx.y += lineHeight;
+  const blockHeight = lines.length * lineHeight + ctx.theme.paragraphGap * 0.75;
+  ensureParagraphBlockFits(ctx, blockHeight);
+
+  let index = 0;
+  while (index < lines.length) {
+    let linesThatFit = Math.floor(remainingHeight(ctx) / lineHeight);
+    if (linesThatFit < 1) {
+      startFreshPage(ctx);
+      linesThatFit = Math.floor(remainingHeight(ctx) / lineHeight);
+    }
+
+    const linesLeft = lines.length - index;
+    const chunkSize = countLinesForPageChunk(linesLeft, linesThatFit);
+    if (chunkSize === 0) {
+      startFreshPage(ctx);
+      continue;
+    }
+
+    for (let offset = 0; offset < chunkSize; offset += 1) {
+      const line = spansToPlainText(lines[index + offset]!);
+      ctx.doc.setFont("helvetica", "bold");
+      ctx.doc.setFontSize(fontSize);
+      ctx.doc.text(line, centerX, ctx.y, { align: "center" });
+      ctx.y += lineHeight;
+    }
+
+    index += chunkSize;
+    if (index < lines.length) {
+      startFreshPage(ctx);
+    }
   }
 
   ctx.y += ctx.theme.paragraphGap * 0.75;
@@ -130,10 +322,10 @@ function renderHeading(ctx: RenderContext, block: Extract<MarkdownBlock, { type:
   const size = ctx.theme.headingSizes[block.level];
   const gap = ctx.theme.headingGap[block.level];
   ctx.y += gap.before;
-  ensureSpace(ctx, size + gap.after);
   renderSpans(ctx, block.spans, {
     fontSize: size,
     lineHeight: size * 1.25,
+    preventOrphans: true,
   });
   ctx.y += gap.after - size * 0.25;
 }
@@ -154,7 +346,15 @@ function orderedListMarkerNumber(
 function renderUnorderedList(ctx: RenderContext, items: InlineSpan[][]): void {
   const bulletWidth = ctx.theme.listIndent;
   items.forEach((item) => {
-    ensureSpace(ctx, ctx.theme.bodyLineHeight);
+    const blockHeight = estimateSpanBlockHeight(ctx, item, {
+      fontSize: ctx.theme.bodySize,
+      lineHeight: ctx.theme.bodyLineHeight,
+      indent: bulletWidth,
+      maxWidth: ctx.theme.maxWidth - bulletWidth,
+      trailingGap: ctx.theme.paragraphGap * 0.35,
+    });
+    ensureParagraphBlockFits(ctx, blockHeight);
+
     ctx.doc.setFont("helvetica", "normal");
     ctx.doc.setFontSize(ctx.theme.bodySize);
     ctx.doc.text("•", ctx.x, ctx.y);
@@ -163,15 +363,24 @@ function renderUnorderedList(ctx: RenderContext, items: InlineSpan[][]): void {
       lineHeight: ctx.theme.bodyLineHeight,
       indent: bulletWidth,
       maxWidth: ctx.theme.maxWidth - bulletWidth,
+      preventOrphans: true,
+      trailingGap: ctx.theme.paragraphGap * 0.35,
     });
-    ctx.y += ctx.theme.paragraphGap * 0.35;
   });
 }
 
 function renderOrderedList(ctx: RenderContext, items: OrderedListItem[]): void {
   const bulletWidth = ctx.theme.listIndent;
   items.forEach((item, index) => {
-    ensureSpace(ctx, ctx.theme.bodyLineHeight);
+    const blockHeight = estimateSpanBlockHeight(ctx, item.spans, {
+      fontSize: ctx.theme.bodySize,
+      lineHeight: ctx.theme.bodyLineHeight,
+      indent: bulletWidth,
+      maxWidth: ctx.theme.maxWidth - bulletWidth,
+      trailingGap: ctx.theme.paragraphGap * 0.35,
+    });
+    ensureParagraphBlockFits(ctx, blockHeight);
+
     ctx.doc.setFont("helvetica", "normal");
     ctx.doc.setFontSize(ctx.theme.bodySize);
     const marker = `${orderedListMarkerNumber(item, index, items)}.`;
@@ -181,8 +390,9 @@ function renderOrderedList(ctx: RenderContext, items: OrderedListItem[]): void {
       lineHeight: ctx.theme.bodyLineHeight,
       indent: bulletWidth,
       maxWidth: ctx.theme.maxWidth - bulletWidth,
+      preventOrphans: true,
+      trailingGap: ctx.theme.paragraphGap * 0.35,
     });
-    ctx.y += ctx.theme.paragraphGap * 0.35;
   });
 }
 
@@ -267,12 +477,12 @@ export function renderMarkdownBlocksToPdf(
           renderCourseTitleBlock(ctx, block.spans);
           break;
         }
-        ensureSpace(ctx, ctx.theme.bodyLineHeight);
         renderSpans(ctx, block.spans, {
           fontSize: ctx.theme.bodySize,
           lineHeight: ctx.theme.bodyLineHeight,
+          preventOrphans: true,
+          trailingGap: ctx.theme.paragraphGap * 0.5,
         });
-        ctx.y += ctx.theme.paragraphGap * 0.5;
         break;
       case "ul":
         renderUnorderedList(ctx, block.items);
@@ -283,7 +493,6 @@ export function renderMarkdownBlocksToPdf(
         ctx.y += ctx.theme.paragraphGap * 0.35;
         break;
       case "blockquote":
-        ensureSpace(ctx, ctx.theme.bodyLineHeight + 8);
         ctx.doc.setDrawColor(180, 180, 180);
         ctx.doc.setLineWidth(2);
         ctx.doc.line(ctx.x + 4, ctx.y - ctx.theme.bodySize * 0.75, ctx.x + 4, ctx.y + ctx.theme.bodyLineHeight);
@@ -292,8 +501,9 @@ export function renderMarkdownBlocksToPdf(
           lineHeight: ctx.theme.bodyLineHeight,
           indent: 16,
           maxWidth: ctx.theme.maxWidth - 16,
+          preventOrphans: true,
+          trailingGap: ctx.theme.paragraphGap * 0.5,
         });
-        ctx.y += ctx.theme.paragraphGap * 0.5;
         break;
       case "hr":
         ensureSpace(ctx, 20);

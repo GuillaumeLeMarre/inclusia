@@ -1,9 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { AdaptationProfileSummary } from "@/features/adaptations/components/adaptation-profile-summary";
 import { AdaptationExportButton } from "@/features/adaptations/components/adaptation-export-button";
-import { AdaptationDeleteButton } from "@/features/adaptations/components/adaptation-actions";
+import {
+  AdaptationDeleteButton,
+  AdaptationRegenerateButton,
+} from "@/features/adaptations/components/adaptation-actions";
 import { AdaptationPdfViewer } from "@/features/adaptations/components/adaptation-pdf-viewer";
 import { DocumentSourceLinkCard } from "@/features/adaptations/components/document-source-link-card";
 import { FalcScoreBadge } from "@/features/falc/components/falc-score-badge";
@@ -22,6 +26,7 @@ export function AdaptationResult({
   documentTitle,
 }: AdaptationResultProps) {
   const isFalc = adaptation.adaptation_level === "falc";
+  const [pdfReloadToken, setPdfReloadToken] = useState(0);
 
   return (
     <div className="space-y-6">
@@ -42,6 +47,11 @@ export function AdaptationResult({
           <FalcScoreBadge score={adaptation.falc_score} />
         )}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:ml-auto">
+          <AdaptationRegenerateButton
+            adaptationId={adaptation.id}
+            adaptationTitle={documentTitle ?? "Adaptation"}
+            onRegenerated={() => setPdfReloadToken((token) => token + 1)}
+          />
           <AdaptationExportButton adaptationId={adaptation.id} />
           <AdaptationDeleteButton
             adaptationId={adaptation.id}
@@ -50,7 +60,7 @@ export function AdaptationResult({
         </div>
       </div>
 
-      <AdaptationPdfViewer adaptationId={adaptation.id} />
+      <AdaptationPdfViewer adaptationId={adaptation.id} reloadToken={pdfReloadToken} />
 
       <DocumentSourceLinkCard
         documentId={adaptation.document_id}

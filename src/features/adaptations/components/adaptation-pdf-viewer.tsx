@@ -7,13 +7,15 @@ import { Card, CardContent } from "@/components/ui/card";
 
 interface AdaptationPdfViewerProps {
   adaptationId: string;
+  reloadToken?: number;
 }
 
-export function AdaptationPdfViewer({ adaptationId }: AdaptationPdfViewerProps) {
+export function AdaptationPdfViewer({ adaptationId, reloadToken = 0 }: AdaptationPdfViewerProps) {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
+  const cacheBuster = reloadToken + reloadKey;
 
   useEffect(() => {
     setLoading(true);
@@ -21,7 +23,7 @@ export function AdaptationPdfViewer({ adaptationId }: AdaptationPdfViewerProps) 
     setPdfUrl(null);
 
     const pdfEndpoint = `/api/adaptations/${adaptationId}/pdf`;
-    setPdfUrl(`${pdfEndpoint}?v=${reloadKey}`);
+    setPdfUrl(`${pdfEndpoint}?v=${cacheBuster}`);
 
     let cancelled = false;
     fetch(pdfEndpoint)
@@ -46,7 +48,7 @@ export function AdaptationPdfViewer({ adaptationId }: AdaptationPdfViewerProps) 
     return () => {
       cancelled = true;
     };
-  }, [adaptationId, reloadKey]);
+  }, [adaptationId, cacheBuster, reloadToken]);
 
   if (loading) {
     return (

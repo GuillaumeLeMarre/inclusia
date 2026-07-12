@@ -5,8 +5,14 @@ import {
   findLearningPreferences,
   findProfileById,
 } from "@/repositories/profiles.repository";
-import { createAdaptation } from "@/repositories/adaptations.repository";
-import { ensureAdaptationPdfStored } from "@/services/adaptation/adaptation-pdf-storage.service";
+import {
+  createAdaptation,
+  findAdaptationById,
+  updateAdaptation,
+  updateAdaptationPdfPath,
+  type AdaptationResultInput,
+} from "@/repositories/adaptations.repository";
+import { ensureAdaptationPdfStored, deleteStoredAdaptationPdf } from "@/services/adaptation/adaptation-pdf-storage.service";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { buildAdaptationPrompt } from "@/prompts/prompt-builder";
 import {
@@ -41,6 +47,8 @@ export interface RunAdaptationInput {
   adaptationLevel?: AdaptationLevel;
   productionOptions?: ProfileOptions;
   generatePictograms?: boolean;
+  /** Si défini, met à jour l'adaptation existante au lieu d'en créer une nouvelle. */
+  existingAdaptationId?: string;
 }
 
 function resolveProductionOptions(
@@ -255,7 +263,7 @@ export async function runAdaptationEngine(
     }
   }
 
-  return createAdaptation(client, {
+  return persistAdaptationResult(client, input, {
     teacherId: input.teacherId,
     profileId: input.profileId,
     documentId: input.documentId,
@@ -284,8 +292,51 @@ export async function runAdaptationEngine(
     teacherProfileId,
     profileSource,
     productionOptions: savedProductionOptions,
-  }).then(async (adaptation) => {
-    if (!isDemo && isSupabaseConfigured()) {
+  });
+}
+
+async function persistAdaptationResult(
+  client: SupabaseClient<Database>,
+  input: RunAdaptationInput,
+  result: AdaptationResultInput,
+) {
+  if (input.existingAdaptationId) {
+    const existing = await findAdaptationById(
+      client,
+      input.teacherId,
+      input.existingAdaptationId,
+    );
+    await deleteStoredAdaptationPdf(existing.pdf_storage_path);
+    try {
+      await updateAdaptationPdfPath(
+        client,
+        input.teacherId,
+        input.existingAdaptationId,
+        null,
+      );
+    } catch (err) {
+      console.warn("[adaptation-pdf] Réinitialisation pdf_storage_path échouée:", err);
+    }
+    const adaptation = await updateAdaptation(
+      client,
+      input.teacherId,
+      input.existingAdaptationId,
+      result,
+    );
+
+    if (!result.isDemo && isSupabaseConfigured()) {
+      try {
+        await ensureAdaptationPdfStored(client, input.teacherId, adaptation.id);
+      } catch (err) {
+        console.warn("[adaptation-pdf] Génération PDF après régénération échouée:", err);
+      }
+    }
+
+    return adaptation;
+  }
+
+  return createAdaptation(client, result).then(async (adaptation) => {
+    if (!result.isDemo && isSupabaseConfigured()) {
       try {
         await ensureAdaptationPdfStored(client, input.teacherId, adaptation.id);
       } catch (err) {

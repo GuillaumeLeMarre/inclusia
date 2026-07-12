@@ -103,6 +103,9 @@ export interface Adaptation {
   audio_script: string | null;
   processing_time_ms: number | null;
   is_demo: boolean;
+  pedagogical_profile_id: string | null;
+  teacher_profile_id: string | null;
+  profile_source: import("@/types/pedagogical-profile").ProfileSource | null;
   metadata: Record<string, unknown>;
   created_at: string;
   updated_at: string;
