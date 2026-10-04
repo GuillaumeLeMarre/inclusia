@@ -104,7 +104,7 @@ export function ProfileForm() {
       simplified_vocab: form.preferences.simplifiedVocab,
       adapted_font: form.preferences.adaptedFont,
       simplified_text: form.preferences.simplifiedText,
-    });
+    }, { onConflict: "profile_id" });
 
     setLoading(false);
     router.push("/profiles");
