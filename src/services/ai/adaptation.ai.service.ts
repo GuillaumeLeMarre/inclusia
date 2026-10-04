@@ -1,6 +1,7 @@
 import { getOpenAIClient, getOpenAIModel } from "@/services/ai/openai.client";
 import { extractAiUsageFromCompletion } from "@/services/ai/ai-usage.service";
 import type { AdaptationOutput } from "@/services/adaptation/demo-adaptation.service";
+import { normalizeAdaptationOutput } from "@/lib/adaptations/normalize-adaptation-output";
 import type { AiUsageEntry } from "@/types/ai-usage";
 
 export interface AdaptationAiResult {
@@ -34,7 +35,7 @@ export async function generateAdaptationWithAI(
   }
 
   return {
-    output: JSON.parse(content) as AdaptationOutput,
+    output: normalizeAdaptationOutput(JSON.parse(content)),
     usage: extractAiUsageFromCompletion(response, "adaptation", model),
   };
 }
