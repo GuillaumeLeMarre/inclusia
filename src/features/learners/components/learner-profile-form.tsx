@@ -96,7 +96,8 @@ export function LearnerProfileForm({ pedagogicalSlugs }: LearnerProfileFormProps
       return;
     }
 
-    await supabase.from("learning_preferences").upsert({
+    // Le trigger on_learner_profile_created crée déjà la ligne : upsert sur profile_id.
+    const { error: preferencesError } = await supabase.from("learning_preferences").upsert({
       profile_id: profile.id,
       audio_enabled: form.preferences.audioEnabled,
       diagrams_enabled: form.preferences.diagramsEnabled,
@@ -104,7 +105,13 @@ export function LearnerProfileForm({ pedagogicalSlugs }: LearnerProfileFormProps
       simplified_vocab: form.preferences.simplifiedVocab,
       adapted_font: form.preferences.adaptedFont,
       simplified_text: form.preferences.simplifiedText,
-    });
+    }, { onConflict: "profile_id" });
+
+    if (preferencesError) {
+      setErrors(`Profil créé, mais préférences non enregistrées : ${preferencesError.message}`);
+      setLoading(false);
+      return;
+    }
 
     setLoading(false);
     router.push("/learners");
